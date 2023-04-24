@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'screen/home.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:parking_app/screen_model/home_provider.dart';
-import 'package:parking_app/model/coffee.dart';
+import 'package:parking_app/screen/homePage.dart';
+import 'package:parking_app/screen/coffeePage.dart';
+import 'package:parking_app/screen/loginPage.dart';
 
 void main() async {
   runApp(ProviderScope(child: MyApp()));
@@ -28,7 +28,12 @@ class MyApp extends ConsumerWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(),
+      home: HomePage(),
+      routes: <String, WidgetBuilder>{
+        '/home': (BuildContext context) => new HomePage(),
+        '/coffee': (BuildContext context) => new CoffeePage(),
+        '/login': (BuildContext context) => new LoginPage()
+      },
     );
   }
 }
