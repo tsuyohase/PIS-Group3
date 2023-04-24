@@ -1,16 +1,15 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:flutter/foundation.dart';
+class Coffee {
+  String coffeeId;
+  String title;
+  String description;
 
-// build_runnerを使うことで自動生成されるファイル
-part 'coffee.freezed.dart';
-part 'coffee.g.dart';
+  Coffee({this.coffeeId = '', required this.title, required this.description});
 
-@freezed
-class Coffee with _$Coffee {
-  factory Coffee({
-    String? title,
-    String? description,
-  }) = _Coffee;
+  factory Coffee.fromJson(Map<String, dynamic> json) {
+    return Coffee(title: json['title'], description: json['description']);
+  }
 
-  factory Coffee.fromJson(Map<String, dynamic> json) => _$CoffeeFromJson(json);
+  Map<String, Object?> toJson() {
+    return {'title': title, 'description': description};
+  }
 }

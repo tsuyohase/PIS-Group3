@@ -39,8 +39,6 @@ dependencies:
   cloud_firestore: ^4.5.1
   flutter_riverpod: ^2.3.5
   build_runner: ^2.1.8
-  freezed: ^1.1.1
-  freezed_annotation: ^1.1.0
   json_serializable: ^6.1.5
   dio: ^4.0.4
 
