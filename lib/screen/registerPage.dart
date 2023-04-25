@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../constants.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPage();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPage extends State<RegisterPage> {
   var _idController = TextEditingController();
   var _passController = TextEditingController();
 
@@ -32,10 +32,9 @@ class _LoginPageState extends State<LoginPage> {
         /// メールアドレスが既に使用中の場合
       } else if (e.code == 'email-already-in-use') {
         print('すでに使用されているメールアドレスです');
-      }
 
-      /// その他エラー
-      else {
+        /// その他エラー
+      } else {
         print('アカウント作成エラー');
       }
     } catch (e) {
@@ -47,15 +46,32 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: new AppBar(
-        title: new Text('ログインページ'),
+        title: new Text('新規登録ページ'),
       ),
       body: Column(children: [
-        Center(
+        /// メールアドレス入力
+        TextField(
+          decoration: const InputDecoration(
+            label: Text('E-mail'),
+          ),
+          controller: _idController,
+        ),
+
+        /// パスワード入力
+        TextField(
+          decoration: const InputDecoration(
+            label: Text('Password'),
+          ),
+          controller: _passController,
+          obscureText: true,
+        ),
+        Container(
+          margin: const EdgeInsets.all(10),
           child: ElevatedButton(
-            child: Text("新規登録はこちら"),
-            onPressed: () async {
-              Navigator.of(context).pushNamed("/register");
+            onPressed: () {
+              _createAccount(_idController.text, _passController.text);
             },
+            child: const Text('アカウント作成'),
           ),
         ),
       ]),
