@@ -12,6 +12,7 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPage extends State<RegisterPage> {
   var _idController = TextEditingController();
   var _passController = TextEditingController();
+  String infoText = "";
 
   void _createAccount(String id, String pass) async {
     try {
@@ -21,24 +22,36 @@ class _RegisterPage extends State<RegisterPage> {
         email: id,
         password: pass,
       );
+      final User user = credential.user!;
+      setState(() {
+        infoText = "登録完了：${user.email}";
+      });
     }
 
     /// アカウントに失敗した場合のエラー処理
     on FirebaseAuthException catch (e) {
       /// パスワードが弱い場合
       if (e.code == 'weak-password') {
-        print('パスワードが弱いです');
+        setState(() {
+          infoText = "パスワードが弱いです";
+        });
 
         /// メールアドレスが既に使用中の場合
       } else if (e.code == 'email-already-in-use') {
-        print('すでに使用されているメールアドレスです');
+        setState(() {
+          infoText = "すでに使用されているメールアドレスです";
+        });
 
         /// その他エラー
       } else {
-        print('アカウント作成エラー');
+        setState(() {
+          infoText = "アカウント作成エラー";
+        });
       }
     } catch (e) {
-      print(e);
+      setState(() {
+        print(e);
+      });
     }
   }
 
@@ -74,6 +87,8 @@ class _RegisterPage extends State<RegisterPage> {
             child: const Text('アカウント作成'),
           ),
         ),
+        const SizedBox(height: 8),
+        Text(infoText),
       ]),
     );
   }
