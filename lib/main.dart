@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parking_app/screen/homePage.dart';
 import 'package:parking_app/screen/coffeePage.dart';
 import 'package:parking_app/screen/loginPage.dart';
+import 'package:parking_app/screen/registerPage.dart';
 
 void main() async {
   runApp(ProviderScope(child: MyApp()));
@@ -32,7 +33,8 @@ class MyApp extends ConsumerWidget {
       routes: <String, WidgetBuilder>{
         '/home': (BuildContext context) => new HomePage(),
         '/coffee': (BuildContext context) => new CoffeePage(),
-        '/login': (BuildContext context) => new LoginPage()
+        '/login': (BuildContext context) => new LoginPage(),
+        '/register': (BuildContext context) => new RegisterPage()
       },
     );
   }
