@@ -23,41 +23,63 @@ class _RegisterPage extends State<RegisterPage> {
         password: pass,
       );
       final User user = credential.user!;
-      setState(() {
-        infoText = "登録完了：${user.email}";
-      });
+      Navigator.of(context).pushNamed("/map");
+      // setState(() {
+      //   infoText = "登録完了：${user.email}";
+      // });
     }
 
     /// アカウントに失敗した場合のエラー処理
     on FirebaseAuthException catch (e) {
-      /// パスワードが弱い場合
-      if (e.code == 'weak-password') {
-        setState(() {
-          infoText = "パスワードが弱いです";
-        });
-
-        /// メールアドレスが既に使用中の場合
-      } else if (e.code == 'email-already-in-use') {
+      if (e.code == 'email-already-in-use') {
         setState(() {
           infoText = "すでに使用されているメールアドレスです";
         });
-
-        /// その他エラー
+      } else if (e.code == 'weak-password') {
+        setState(() {
+          infoText = "パスワードが弱いです";
+        });
+      } else if (e.code == 'user-not-found') {
+        setState(() {
+          infoText = "このアカウントは存在しません。";
+        });
+      } else if (e.code == 'user-disabled') {
+        setState(() {
+          infoText = "このメールアドレスは無効になっています。";
+        });
+      } else if (e.code == 'too-many-requests') {
+        setState(() {
+          infoText = "回線が混雑しています。もう一度試してみてください。";
+        });
+      } else if (e.code == 'operation-not-allowed') {
+        setState(() {
+          infoText = "メールアドレスとパスワードでのログインは有効になっていません。";
+        });
+      } else if (e.code == 'EmailAlreadyExists') {
+        setState(() {
+          infoText = "このメールアドレスはすでに登録されています。";
+        });
+      } else if (e.code == 'Undefined') {
+        setState(() {
+          infoText = "予期せぬエラーが発生しました。";
+        });
       } else {
         setState(() {
-          infoText = "アカウント作成エラー";
+          infoText = "アカウント作成エラー：${e.toString()}";
         });
       }
     } catch (e) {
-      print(e);
+      setState(() {
+        infoText = "アカウント作成エラー：${e.toString()}";
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: new AppBar(
-        title: new Text('新規登録ページ'),
+      appBar: AppBar(
+        title: const Text('新規登録ページ'),
       ),
       body: Column(children: [
         /// メールアドレス入力
@@ -76,6 +98,7 @@ class _RegisterPage extends State<RegisterPage> {
           controller: _passController,
           obscureText: true,
         ),
+
         Container(
           margin: const EdgeInsets.all(10),
           child: ElevatedButton(

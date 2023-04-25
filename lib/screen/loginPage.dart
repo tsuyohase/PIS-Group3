@@ -25,28 +25,60 @@ class _LoginPageState extends State<LoginPage> {
       );
       // ログインに成功した場合
       final User user = credential.user!;
-      setState(() {
-        //infoText = "ログインOK：${user.email}";
-        Navigator.of(context).pushNamed("/map");
-      });
+      Navigator.of(context).pushNamed("/map");
     }
 
     /// ログインに失敗した場合のエラー処理
     on FirebaseAuthException catch (e) {
-      /// ログインに失敗した場合
+      if (e.code == 'invalid-email') {
+        setState(() {
+          infoText = "メールアドレスが間違っています。";
+        });
+      } else if (e.code == 'wrong-password') {
+        setState(() {
+          infoText = "パスワードが間違っています。";
+        });
+      } else if (e.code == 'user-not-found') {
+        setState(() {
+          infoText = "このアカウントは存在しません。";
+        });
+      } else if (e.code == 'user-disabled') {
+        setState(() {
+          infoText = "このメールアドレスは無効になっています。";
+        });
+      } else if (e.code == 'too-many-requests') {
+        setState(() {
+          infoText = "回線が混雑しています。もう一度試してみてください。";
+        });
+      } else if (e.code == 'operation-not-allowed') {
+        setState(() {
+          infoText = "メールアドレスとパスワードでのログインは有効になっていません。";
+        });
+      } else if (e.code == 'EmailAlreadyExists') {
+        setState(() {
+          infoText = "このメールアドレスはすでに登録されています。";
+        });
+      } else if (e.code == 'Undefined') {
+        setState(() {
+          infoText = "予期せぬエラーが発生しました。";
+        });
+      } else {
+        setState(() {
+          infoText = "ログインNG：${e.toString()}";
+        });
+      }
+    } catch (e) {
       setState(() {
         infoText = "ログインNG：${e.toString()}";
       });
-    } catch (e) {
-      print(e);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: new AppBar(
-        title: new Text('ログインページ'),
+      appBar: AppBar(
+        title: const Text('ログインページ'),
       ),
       body: Column(children: [
         /// メールアドレス入力
@@ -65,6 +97,7 @@ class _LoginPageState extends State<LoginPage> {
           controller: _passController,
           obscureText: true,
         ),
+
         Container(
           margin: const EdgeInsets.all(10),
           child: ElevatedButton(
@@ -76,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         Center(
           child: ElevatedButton(
-            child: Text("新規登録はこちら"),
+            child: const Text("新規登録はこちら"),
             onPressed: () async {
               Navigator.of(context).pushNamed("/register");
             },
