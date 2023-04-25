@@ -49,9 +49,7 @@ class _RegisterPage extends State<RegisterPage> {
         });
       }
     } catch (e) {
-      setState(() {
-        print(e);
-      });
+      print(e);
     }
   }
 
