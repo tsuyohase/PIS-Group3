@@ -12,7 +12,7 @@ class CoffeePage extends ConsumerWidget {
     final asyncValue = ref.watch(listProvider);
     return Scaffold(
         appBar: new AppBar(
-          title: new Text('コーヒーページ！'),
+          title: new Text('コーヒータイム！'),
         ),
         body: Center(
           child: asyncValue.when(
