@@ -24,6 +24,11 @@ class HomePage extends ConsumerWidget {
                 onPressed: () {
                   Navigator.of(context).pushNamed("/login");
                 }),
+            TextButton(
+                child: Text("mapへ"),
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/map");
+                }),
           ]),
         ));
   }

@@ -60,3 +60,4 @@ ios/Flutter/Release.xcconfig
 macos/Flutter/Flutter-Debug.xcconfig
 .gitignore
 
+.env
