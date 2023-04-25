@@ -46,30 +46,16 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: new AppBar(
+        title: new Text('ログインページ'),
+      ),
       body: Column(children: [
-        /// メールアドレス入力
-        TextField(
-          decoration: const InputDecoration(
-            label: Text('E-mail'),
-          ),
-          controller: _idController,
-        ),
-
-        /// パスワード入力
-        TextField(
-          decoration: const InputDecoration(
-            label: Text('Password'),
-          ),
-          controller: _passController,
-          obscureText: true,
-        ),
-        Container(
-          margin: const EdgeInsets.all(10),
+        Center(
           child: ElevatedButton(
-            onPressed: () {
-              _createAccount(_idController.text, _passController.text);
+            child: Text("新規登録はこちら"),
+            onPressed: () async {
+              Navigator.of(context).pushNamed("/register");
             },
-            child: const Text('アカウント作成'),
           ),
         ),
       ]),
