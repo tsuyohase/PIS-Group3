@@ -12,7 +12,7 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPage extends State<RegisterPage> {
   var _idController = TextEditingController();
   var _passController = TextEditingController();
-  String infoText = "";
+  String infoText = "アカウント作成に成功すると自動でログインページに移動します。";
 
   void _createAccount(String id, String pass) async {
     try {
@@ -23,7 +23,7 @@ class _RegisterPage extends State<RegisterPage> {
         password: pass,
       );
       final User user = credential.user!;
-      Navigator.of(context).pushNamed("/map");
+      Navigator.of(context).pushNamed("/login");
       // setState(() {
       //   infoText = "登録完了：${user.email}";
       // });

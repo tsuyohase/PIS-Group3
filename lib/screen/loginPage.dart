@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import '../constants.dart';
 
+String? email = "";
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -25,7 +27,8 @@ class _LoginPageState extends State<LoginPage> {
       );
       // ログインに成功した場合
       final User user = credential.user!;
-      Navigator.of(context).pushNamed("/map");
+      email = user.email;
+      Navigator.of(context).pushNamed("/home");
     }
 
     /// ログインに失敗した場合のエラー処理
