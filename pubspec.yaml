@@ -43,6 +43,8 @@ dependencies:
   dio: ^4.0.4
   google_maps_flutter: ^2.2.5
   flutter_config: ^2.0.0
+  flutter_dotenv: ^5.0.2
+  crypto: ^3.0.1
 
 dev_dependencies:
   flutter_test:
