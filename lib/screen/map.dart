@@ -23,16 +23,9 @@ class GoogleMapWidget extends StatelessWidget {
 class _GoogleMapWidget extends HookWidget {
   GooglePlace googlePlace = GooglePlace(dotenv.get("GOOGLE_MAP_API_KEY"));
   // 初期表示位置を渋谷駅に設定
-  final Position _initialPosition = Position(
-    latitude: 35.68126232447219,
-    longitude: 139.76712479827628,
-    timestamp: DateTime.now(),
-    altitude: 0,
-    accuracy: 0,
-    heading: 0,
-    floor: null,
-    speed: 0,
-    speedAccuracy: 0,
+  final LatLng _initialPosition = LatLng(
+    35.68126232447219,
+    139.76712479827628,
   );
 
   final Completer<GoogleMapController> _mapController = Completer();
@@ -40,7 +33,7 @@ class _GoogleMapWidget extends HookWidget {
   /// デバイスの現在位置を決定する。
   /// 位置情報サービスが有効でない場合、または許可されていない場合。
   /// エラーを返します
-  Future<Position> _determinePosition() async {
+  Future<LatLng> _determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -71,7 +64,9 @@ class _GoogleMapWidget extends HookWidget {
 
     // ここまでたどり着くと、位置情報に対しての権限が許可されているということなので
     // デバイスの位置情報を返す。
-    return await Geolocator.getCurrentPosition();
+    final currentPosition = await Geolocator.getCurrentPosition();
+
+    return LatLng(currentPosition.latitude, currentPosition.longitude);
   }
 
   Widget _createMap(ValueNotifier<Map<String, Marker>> markers) {
@@ -84,7 +79,7 @@ class _GoogleMapWidget extends HookWidget {
       myLocationButtonEnabled: true,
       markers: markers.value.values.toSet(),
       initialCameraPosition: CameraPosition(
-          target: LatLng(_initialPosition.latitude, _initialPosition.altitude),
+          target: LatLng(_initialPosition.latitude, _initialPosition.longitude),
           zoom: 15),
     );
   }
@@ -99,8 +94,8 @@ class _GoogleMapWidget extends HookWidget {
   }
 
   // PlaceIDから画面表示する地点を取得する。
-  Future<void> _getTargetLatLng(
-      String? placeId, ValueNotifier<Map<String, Marker>> markers) async {
+  Future<void> _getTargetLatLng(ValueNotifier<LatLng> position, String? placeId,
+      ValueNotifier<Map<String, Marker>> markers) async {
 // ここでもAPIキーを使用する。
     String requestUrl =
         'https://maps.googleapis.com/maps/api/place/details/json?language=ja&place_id=${placeId}&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
@@ -122,6 +117,7 @@ class _GoogleMapWidget extends HookWidget {
       );
       // markers.value.clear();
       markers.value[address] = marker;
+      position.value = LatLng(latitude, longitude);
     }
   }
 
@@ -169,6 +165,7 @@ class _GoogleMapWidget extends HookWidget {
   }
 
   Widget _searchListView(
+      ValueNotifier<LatLng> position,
       ValueNotifier<bool> hasPosition,
       ValueNotifier<List<AutocompletePrediction>> predictions,
       ValueNotifier<Map<String, Marker>> markers) {
@@ -183,7 +180,8 @@ class _GoogleMapWidget extends HookWidget {
                 .toString()), // 検索結果を表示。descriptionを指定すると場所名が表示されます。
             onTap: () async {
 // 検索した住所を押した時の処理を記載
-              _getTargetLatLng(predictions.value[index].placeId, markers);
+              _getTargetLatLng(
+                  position, predictions.value[index].placeId, markers);
 
               FocusScope.of(context).unfocus();
 
@@ -195,7 +193,7 @@ class _GoogleMapWidget extends HookWidget {
     );
   }
 
-  Future<void> _setCurrentLocation(ValueNotifier<Position> position,
+  Future<void> _setCurrentLocation(ValueNotifier<LatLng> position,
       ValueNotifier<Map<String, Marker>> markers) async {
     final currentPosition = await _determinePosition();
 
@@ -207,17 +205,17 @@ class _GoogleMapWidget extends HookWidget {
             (currentPosition.longitude).toStringAsFixed(decimalPoint)) {
       // 現在地座標にMarkerを立てる
       final marker = Marker(
-        markerId: MarkerId(currentPosition.timestamp.toString()),
+        markerId: MarkerId('current'),
         position: LatLng(currentPosition.latitude, currentPosition.longitude),
       );
       markers.value.clear();
-      markers.value[currentPosition.timestamp.toString()] = marker;
+      markers.value['current'] = marker;
       // 現在地座標のstateを更新する
       position.value = currentPosition;
     }
   }
 
-  Future<void> _animateCamera(ValueNotifier<Position> position) async {
+  Future<void> _animateCamera(ValueNotifier<LatLng> position) async {
     final mapController = await _mapController.future;
 
     await mapController.animateCamera(
@@ -231,12 +229,12 @@ class _GoogleMapWidget extends HookWidget {
   Widget build(BuildContext context) {
     // 初期表示座標のMarkerを設定
     final initialMarkers = {
-      _initialPosition.timestamp.toString(): Marker(
-        markerId: MarkerId(_initialPosition.timestamp.toString()),
-        position: LatLng(_initialPosition.latitude, _initialPosition.longitude),
+      'initial': Marker(
+        markerId: MarkerId('initial'),
+        position: _initialPosition,
       ),
     };
-    final position = useState<Position>(_initialPosition);
+    final position = useState<LatLng>(_initialPosition);
     final markers = useState<Map<String, Marker>>(initialMarkers);
     final predictions = useState<List<AutocompletePrediction>>([]);
     final hasPositon = useState<bool>(false);
@@ -275,8 +273,21 @@ class _GoogleMapWidget extends HookWidget {
       body: Stack(
         children: [
           _createMap(markers),
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: ElevatedButton(
+                child: Text("ここで駐車場検索！\n 緯度 : " +
+                    position.value.latitude.toString() +
+                    "\n 経度 : " +
+                    position.value.longitude.toString()),
+                onPressed: () {
+                  // positoin.value.latitudeで緯度取得
+                  // postion.value.longitudeで軽度取得できる
+                  // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
+                }),
+          ),
           if (hasPositon.value)
-            _searchListView(hasPositon, predictions, markers),
+            _searchListView(position, hasPositon, predictions, markers),
         ],
       ),
     );

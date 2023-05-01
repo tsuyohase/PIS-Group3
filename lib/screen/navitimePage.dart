@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'loginPage.dart';
 import '../component/loginButton.dart';
 import '../constants.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:parking_app/screen_model/navitime_provider.dart';
 import 'package:parking_app/model/navitime.dart';
 
@@ -31,7 +31,8 @@ class NavitimePage extends ConsumerWidget {
                                         title: Text(navitime.name!),
                                         children: [
                                           SimpleDialogOption(
-                                            child: Text(navitime.distance.toString()!),
+                                            child: Text(
+                                                navitime.distance.toString()!),
                                           ),
                                         ],
                                       );
@@ -42,9 +43,11 @@ class NavitimePage extends ConsumerWidget {
                                   title: Text(navitime.name!),
                                   subtitle: Column(
                                     children: [
-                                       Text(navitime.distance.toString()+"m"),
-                                       Text("capacity" + navitime.capacity.toString())
-                                  ],),
+                                      Text(navitime.distance.toString() + "m"),
+                                      Text("capacity" +
+                                          navitime.capacity.toString())
+                                    ],
+                                  ),
                                   trailing: const Icon(Icons.more_vert),
                                 ),
                               ),
