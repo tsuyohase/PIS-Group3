@@ -15,9 +15,16 @@ class HomePage extends ConsumerWidget {
         body: Center(
           child: Column(children: [
             FloatingActionButton(
+                heroTag: "coffee",
                 child: Icon(Icons.coffee),
                 onPressed: () {
                   Navigator.of(context).pushNamed("/coffee");
+                }),
+            FloatingActionButton(
+                heroTag: "navitime",
+                child: Icon(Icons.local_parking),
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/navitime");
                 }),
             ElevatedButton(
                 child: Icon(Icons.login),
