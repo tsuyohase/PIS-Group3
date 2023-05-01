@@ -242,7 +242,12 @@ class _GoogleMapWidget extends HookWidget {
     final hasPositon = useState<bool>(false);
     final isSearch = useState<bool>(false);
 
-    _setCurrentLocation(position, markers);
+    // 一度だけ実行(うまく動いていない)
+    useEffect(() {
+      _setCurrentLocation(position, markers);
+      return;
+    }, const []);
+
     _animateCamera(position);
 
     return Scaffold(
