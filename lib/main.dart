@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:parking_app/screen/navitimePage.dart';
 import 'firebase_options.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:parking_app/screen/homePage.dart';
 import 'package:parking_app/screen/coffeePage.dart';
 import 'package:parking_app/screen/loginPage.dart';
 import 'package:parking_app/screen/map.dart';
 import 'package:parking_app/screen/registerPage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
+  await dotenv.load(fileName: '.env');
   runApp(ProviderScope(child: MyApp()));
 }
 
