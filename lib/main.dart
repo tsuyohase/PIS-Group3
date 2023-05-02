@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:parking_app/screen/myPage.dart';
 import 'package:parking_app/screen/navitimePage.dart';
 import 'firebase_options.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -40,7 +41,8 @@ class MyApp extends ConsumerWidget {
         '/login': (BuildContext context) => new LoginPage(),
         '/map': (BuildContext context) => new GoogleMapWidget(),
         '/register': (BuildContext context) => new RegisterPage(),
-        '/navitime': (BuildContext context) => new NavitimePage()
+        '/navitime': (BuildContext context) => new NavitimePage(),
+        '/mypage': (BuildContext context) => new MyPage(),
       },
     );
   }
