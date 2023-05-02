@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import '../constants.dart';
 
-String? email = "";
+String? userID = "";
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -27,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
       );
       // ログインに成功した場合
       final User user = credential.user!;
-      email = user.email;
+      userID = user.uid;
       Navigator.of(context).pushNamed("/home");
     }
 
