@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../constants.dart';
@@ -23,6 +24,10 @@ class _RegisterPage extends State<RegisterPage> {
         password: pass,
       );
       final User user = credential.user!;
+      await FirebaseFirestore.instance
+          .collection('users') // コレクションID
+          .doc(user.uid) // ドキュメントID
+          .set({'email': id, 'password': pass, 'skill': "None"}); // データ
       Navigator.of(context).pushNamed("/login");
       // setState(() {
       //   infoText = "登録完了：${user.email}";
