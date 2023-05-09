@@ -51,6 +51,7 @@ dependencies:
   flutter_hooks: ^0.18.6
   hooks_riverpod: ^2.3.6
   crypto: ^3.0.1
+  firebase_ml_model_downloader: ^0.2.2
 
 dev_dependencies:
   flutter_test:
