@@ -87,7 +87,7 @@ class _GoogleMapWidget extends HookWidget {
   //入力内容から結果取得
   void autoCompleteSearch(String value,
       ValueNotifier<List<AutocompletePrediction>> predictions) async {
-    final result = await googlePlace.autocomplete.get(value);
+    final result = await googlePlace.autocomplete.get(value, language: 'ja');
     if (result != null && result.predictions != null) {
       predictions.value = result.predictions!;
     }
@@ -219,9 +219,8 @@ class _GoogleMapWidget extends HookWidget {
     final mapController = await _mapController.future;
 
     await mapController.animateCamera(
-      CameraUpdate.newLatLng(
-        LatLng(position.value.latitude, position.value.longitude),
-      ),
+      CameraUpdate.newLatLngZoom(
+          LatLng(position.value.latitude, position.value.longitude), 15),
     );
   }
 
@@ -281,6 +280,7 @@ class _GoogleMapWidget extends HookWidget {
                     "\n 経度 : " +
                     position.value.longitude.toString()),
                 onPressed: () {
+                  isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
