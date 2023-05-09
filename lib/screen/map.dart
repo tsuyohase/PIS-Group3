@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import "parking.dart";
 
 class GoogleMapWidget extends StatelessWidget {
   const GoogleMapWidget({super.key});
@@ -224,6 +225,29 @@ class _GoogleMapWidget extends HookWidget {
     );
   }
 
+  // 現在値を取得して駐車場のリストを追加する
+  Future<void> _getParking(ValueNotifier<LatLng> position,
+      ValueNotifier<Map<String, Marker>> markers,ValueNotifier<List<Parking>> parkings) async {
+    final keyword = "parking";
+    final radius = "1500";
+// ここでもAPIキーを使用する。
+    String requestUrl =
+        'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${position.value.latitude}%2C${position.value.longitude}&radius=${radius}&language=ja&query=${keyword}&type=parking&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
+    http.Response? response;
+    response = await http.get(Uri.parse(requestUrl));
+    final mapController = await _mapController.future;
+
+    if (response.statusCode == 200) {
+      final res = jsonDecode(response.body);
+      var results_list = res["results"];
+      for (int i = 0; i < results_list.length; i++){
+        var latitude = results_list[i]["geometry"]["location"]['lat'];
+        var longitude = results_list[i]["geometry"]["location"]['lng'];
+        parkings.value.add(Parking(latLng:LatLng(latitude, longitude), name: results_list[i]["name"]));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // 初期表示座標のMarkerを設定
@@ -238,6 +262,7 @@ class _GoogleMapWidget extends HookWidget {
     final predictions = useState<List<AutocompletePrediction>>([]);
     final hasPositon = useState<bool>(false);
     final isSearch = useState<bool>(false);
+    final parkings = useState<List<Parking>>([]);
 
     // 一度だけ実行(うまく動いていない)
     useEffect(() {
@@ -283,11 +308,13 @@ class _GoogleMapWidget extends HookWidget {
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
+                  _getParking(position, markers,parkings);
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
                 }),
           ),
           if (hasPositon.value)
             _searchListView(position, hasPositon, predictions, markers),
+          
         ],
       ),
     );
