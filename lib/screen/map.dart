@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'loginPage.dart';
 
 class GoogleMapWidget extends StatelessWidget {
   const GoogleMapWidget({super.key});
@@ -249,17 +250,34 @@ class _GoogleMapWidget extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+            onPressed: () {
+              // ランキング表示
+            },
+            icon: Icon(Icons.assignment)),
         title: !isSearch.value
-            ? Text('Google Map Flutter Config')
-            : _searchTextField(hasPositon, predictions),
-        actions: !isSearch.value
-            ? [
-                IconButton(
+            ? Center(
+                child: IconButton(
                     onPressed: () {
                       isSearch.value = true;
                       predictions.value = [];
                     },
-                    icon: Icon(Icons.search))
+                    icon: Icon(Icons.search)),
+              )
+            : _searchTextField(hasPositon, predictions),
+        actions: !isSearch.value
+            ? [
+                userID == ''
+                    ? IconButton(
+                        onPressed: () {
+                          Navigator.of(context).pushNamed("/login");
+                        },
+                        icon: Icon(Icons.login))
+                    : IconButton(
+                        onPressed: () {
+                          Navigator.of(context).pushNamed("/mypage");
+                        },
+                        icon: Icon(Icons.person))
               ]
             : [
                 IconButton(
