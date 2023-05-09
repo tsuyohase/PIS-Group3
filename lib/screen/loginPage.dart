@@ -80,42 +80,59 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 215, 213, 213),
       appBar: AppBar(
-        title: const Text('ログインページ'),
+        backgroundColor: Colors.green,
+        title: Container(
+          alignment: Alignment.centerLeft,
+          child: const Text('Log In Page', style: TextStyle(color: Colors.black)),
+      )
       ),
-      body: Column(children: [
+      
+      body: 
+      Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
         /// メールアドレス入力
-        TextField(
+        TextField(       
           decoration: const InputDecoration(
-            label: Text('E-mail'),
+            label: Text('E-mail', style: TextStyle(color: Colors.black)),
           ),
           controller: _idController,
+          style: const TextStyle(color: Colors.black)
         ),
 
         /// パスワード入力
         TextField(
           decoration: const InputDecoration(
-            label: Text('Password'),
+            label: Text('Password', style: TextStyle(color: Colors.black)),
           ),
           controller: _passController,
           obscureText: true,
+          style: const TextStyle(color: Colors.black),
         ),
 
         Container(
           margin: const EdgeInsets.all(10),
+          width: 250,
+          height: 50,
           child: ElevatedButton(
             onPressed: () async {
               _loginAccount(_idController.text, _passController.text);
             },
-            child: const Text('ログイン'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+            child: const Text('Log In', style: TextStyle(color: Colors.black) ),
           ),
         ),
-        Center(
+        Container(
+          width: 250,
+          height: 50,
           child: ElevatedButton(
-            child: const Text("新規登録はこちら"),
+            child: const Text("Create New Account", style: TextStyle(color: Colors.black)),
             onPressed: () async {
               Navigator.of(context).pushNamed("/register");
             },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
           ),
         ),
         const SizedBox(height: 8),
