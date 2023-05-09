@@ -10,7 +10,7 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
         appBar: new AppBar(
-          title: new Text('メインページ！'),
+          title: new Text('デバッグページ！'),
         ),
         body: Center(
           child: Column(children: [
