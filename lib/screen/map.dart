@@ -239,6 +239,7 @@ class _GoogleMapWidget extends HookWidget {
     final mapController = await _mapController.future;
 
     if (response.statusCode == 200) {
+      parkings.value = [];
       final res = jsonDecode(response.body);
       var results_list = res["results"];
       for (int i = 0; i < results_list.length; i++){
@@ -277,6 +278,7 @@ class _GoogleMapWidget extends HookWidget {
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
+              Navigator.of(context).pushNamed("/ranking",arguments: parkings);
               // ランキング表示
             },
             icon: Icon(Icons.assignment)),
