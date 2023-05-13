@@ -324,12 +324,34 @@ class _GoogleMapWidget extends HookWidget {
                     position.value.latitude.toString() +
                     "\n 経度 : " +
                     position.value.longitude.toString()),
-                onPressed: () {
+                onPressed: () async{
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
-                  _getParking(position, markers,parkings);
+                  await _getParking(position, markers,parkings);
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
+                  //駐車場取得メッセージの設定
+                  var parkingMessage = "";
+                    if (parkings.value.length > 0)
+                        {parkingMessage = "検索成功！";}
+                    else
+                        {parkingMessage = "駐車場はありません";};
+                        //ダイアログの表示
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(parkingMessage),
+                                actions: [
+                                  TextButton(
+                                    child: Text("OK"),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                      
                 }),
           ),
           if (hasPositon.value)
