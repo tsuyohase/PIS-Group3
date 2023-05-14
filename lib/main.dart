@@ -10,6 +10,8 @@ import 'package:parking_app/screen/loginPage.dart';
 import 'package:parking_app/screen/map.dart';
 import 'package:parking_app/screen/registerPage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import "package:parking_app/screen/rankingPage.dart";
+import 'package:parking_app/screen/parking.dart';
 
 void main() async {
   await dotenv.load(fileName: '.env');
@@ -43,7 +45,8 @@ class MyApp extends ConsumerWidget {
         '/register': (BuildContext context) => new RegisterPage(),
         '/navitime': (BuildContext context) => new NavitimePage(),
         '/mypage': (BuildContext context) => new MyPage(),
-      },
+        '/ranking': (BuildContext context) => new RankingPage(parkings: ModalRoute.of(context)!.settings.arguments as ValueNotifier<List<Parking>>)
+        }
     );
   }
 }

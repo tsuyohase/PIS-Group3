@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import "parking.dart";
 import 'loginPage.dart';
 
 class GoogleMapWidget extends StatelessWidget {
@@ -225,6 +226,52 @@ class _GoogleMapWidget extends HookWidget {
     );
   }
 
+  // 現在値を取得して駐車場のリストを追加する
+  Future<void> _getParking(ValueNotifier<LatLng> position,
+      ValueNotifier<Map<String, Marker>> markers,ValueNotifier<List<Parking>> parkings) async {
+    final keyword = "parking";
+    final radius = "1500";
+// ここでもAPIキーを使用する。
+    String requestUrl =
+        'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${position.value.latitude}%2C${position.value.longitude}&radius=${radius}&language=ja&query=${keyword}&type=parking&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
+    http.Response? response;
+    response = await http.get(Uri.parse(requestUrl));
+    final mapController = await _mapController.future;
+
+    if (response.statusCode == 200) {
+      parkings.value = [];
+      final res = jsonDecode(response.body);
+      var results_list = res["results"];
+      for (int i = 0; i < results_list.length; i++){
+        var latitude = results_list[i]["geometry"]["location"]['lat'];
+        var longitude = results_list[i]["geometry"]["location"]['lng'];
+        parkings.value.add(Parking(latLng:LatLng(latitude, longitude), name: results_list[i]["name"]));
+      }
+    }
+  }
+
+  //parkings中の駐車場座標にマーカーを表示
+  Future<void> _setParkingLocation(
+      ValueNotifier<Map<String, Marker>> markers,
+      ValueNotifier<List<Parking>> parkings) async {
+    final List<Parking> parkingList = parkings.value;
+    final Map<String, Marker> markerMap = {};
+
+    for (int i = 0; i < parkingList.length; i++) {
+      final Parking parking = parkingList[i];
+      final Marker marker = Marker(
+        markerId: MarkerId('parking${i + 1}'),
+        position: parking.latLng,
+        //markerをタップすると駐車場名が表示
+        infoWindow: InfoWindow(title: parking.name)
+      );
+      markerMap['parking${i + 1}'] = marker;
+    }
+    //元々保持していたマーカーは削除
+    markers.value.clear();
+    markers.value = markerMap;
+  }
+
   @override
   Widget build(BuildContext context) {
     // 初期表示座標のMarkerを設定
@@ -239,6 +286,7 @@ class _GoogleMapWidget extends HookWidget {
     final predictions = useState<List<AutocompletePrediction>>([]);
     final hasPositon = useState<bool>(false);
     final isSearch = useState<bool>(false);
+    final parkings = useState<List<Parking>>([]);
 
     // 一度だけ実行(うまく動いていない)
     useEffect(() {
@@ -252,6 +300,7 @@ class _GoogleMapWidget extends HookWidget {
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
+              Navigator.of(context).pushNamed("/ranking",arguments: parkings);
               // ランキング表示
             },
             icon: Icon(Icons.assignment)),
@@ -297,15 +346,44 @@ class _GoogleMapWidget extends HookWidget {
                     position.value.latitude.toString() +
                     "\n 経度 : " +
                     position.value.longitude.toString()),
-                onPressed: () {
+                onPressed: () async{
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
+                  await _getParking(position, markers,parkings);
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
+                  //駐車場取得メッセージの設定
+                  var parkingMessage = "";
+                    if (parkings.value.length > 0)
+                        {
+                          parkingMessage = "検索成功！";
+                          _setParkingLocation(markers, parkings);
+                        }
+                    else
+                        {
+                          parkingMessage = "駐車場はありません";
+                        };
+                        //ダイアログの表示
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(parkingMessage),
+                                actions: [
+                                  TextButton(
+                                    child: Text("OK"),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                      
                 }),
           ),
           if (hasPositon.value)
             _searchListView(position, hasPositon, predictions, markers),
+          
         ],
       ),
     );
