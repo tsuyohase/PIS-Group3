@@ -10,7 +10,7 @@ import "parking.dart";
 import 'package:flutter/material.dart';
 
 class RankingPage extends StatelessWidget {
-  final  ValueNotifier<List<Parking>> parkings;
+  final ValueNotifier<List<Parking>> parkings;
   const RankingPage({Key? key, required this.parkings}) : super(key: key);
 
   @override
@@ -26,7 +26,11 @@ class RankingPage extends StatelessWidget {
           final parking = parkings.value[index];
           return ListTile(
             title: Text(parking.name),
-            subtitle: Text('${parking.latLng.latitude}, ${parking.latLng.longitude}'),
+            subtitle:
+                Text('${parking.latLng.latitude}, ${parking.latLng.longitude}'),
+            onTap: () {
+              Navigator.of(context).pushNamed("/navi", arguments: parking);
+            },
           );
         },
       ),

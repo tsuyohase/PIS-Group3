@@ -12,6 +12,7 @@ import 'package:parking_app/screen/registerPage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import "package:parking_app/screen/rankingPage.dart";
 import 'package:parking_app/screen/parking.dart';
+import "package:parking_app/screen/naviPage.dart";
 
 void main() async {
   await dotenv.load(fileName: '.env');
@@ -32,21 +33,24 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     initFirebase();
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: HomePage(),
-      routes: <String, WidgetBuilder>{
-        '/home': (BuildContext context) => new HomePage(),
-        '/coffee': (BuildContext context) => new CoffeePage(),
-        '/login': (BuildContext context) => new LoginPage(),
-        '/map': (BuildContext context) => new GoogleMapWidget(),
-        '/register': (BuildContext context) => new RegisterPage(),
-        '/navitime': (BuildContext context) => new NavitimePage(),
-        '/mypage': (BuildContext context) => new MyPage(),
-        '/ranking': (BuildContext context) => new RankingPage(parkings: ModalRoute.of(context)!.settings.arguments as ValueNotifier<List<Parking>>)
-        }
-    );
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: HomePage(),
+        routes: <String, WidgetBuilder>{
+          '/home': (BuildContext context) => new HomePage(),
+          '/coffee': (BuildContext context) => new CoffeePage(),
+          '/login': (BuildContext context) => new LoginPage(),
+          '/map': (BuildContext context) => new GoogleMapWidget(),
+          '/register': (BuildContext context) => new RegisterPage(),
+          '/navitime': (BuildContext context) => new NavitimePage(),
+          '/mypage': (BuildContext context) => new MyPage(),
+          '/ranking': (BuildContext context) => new RankingPage(
+              parkings: ModalRoute.of(context)!.settings.arguments
+                  as ValueNotifier<List<Parking>>),
+          '/navi': (BuildContext context) => new NaviPage(
+              parking: ModalRoute.of(context)!.settings.arguments as Parking)
+        });
   }
 }
