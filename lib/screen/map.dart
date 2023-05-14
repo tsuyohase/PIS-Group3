@@ -250,6 +250,28 @@ class _GoogleMapWidget extends HookWidget {
     }
   }
 
+  //parkings中の駐車場座標にマーカーを表示
+  Future<void> _setParkingLocation(
+      ValueNotifier<Map<String, Marker>> markers,
+      ValueNotifier<List<Parking>> parkings) async {
+    final List<Parking> parkingList = parkings.value;
+    final Map<String, Marker> markerMap = {};
+
+    for (int i = 0; i < parkingList.length; i++) {
+      final Parking parking = parkingList[i];
+      final Marker marker = Marker(
+        markerId: MarkerId('parking${i + 1}'),
+        position: parking.latLng,
+        //markerをタップすると駐車場名が表示
+        infoWindow: InfoWindow(title: parking.name)
+      );
+      markerMap['parking${i + 1}'] = marker;
+    }
+    //元々保持していたマーカーは削除
+    markers.value.clear();
+    markers.value = markerMap;
+  }
+
   @override
   Widget build(BuildContext context) {
     // 初期表示座標のMarkerを設定
@@ -333,9 +355,14 @@ class _GoogleMapWidget extends HookWidget {
                   //駐車場取得メッセージの設定
                   var parkingMessage = "";
                     if (parkings.value.length > 0)
-                        {parkingMessage = "検索成功！";}
+                        {
+                          parkingMessage = "検索成功！";
+                          _setParkingLocation(markers, parkings);
+                        }
                     else
-                        {parkingMessage = "駐車場はありません";};
+                        {
+                          parkingMessage = "駐車場はありません";
+                        };
                         //ダイアログの表示
                           showDialog(
                             context: context,
