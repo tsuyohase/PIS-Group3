@@ -155,11 +155,18 @@ class _NaviPageState extends State<NaviPage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('Navi'),
-        ),
-        body: _createMap(),
-      ),
+          appBar: AppBar(
+            title: Text('Navi'),
+          ),
+          body: Stack(children: [
+            _createMap(),
+            Container(
+              alignment: Alignment.bottomCenter,
+              child: ElevatedButton(
+                  child: Text("ここに決定！(Google mapとかに飛ばす？)"),
+                  onPressed: () async {}),
+            ),
+          ])),
     );
   }
 }
