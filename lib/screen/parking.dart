@@ -3,4 +3,5 @@ class Parking {
   LatLng latLng;
   String name;
   Parking({required this.latLng, required this.name});
+  double congestion = 0;
 }
