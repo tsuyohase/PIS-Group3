@@ -227,8 +227,10 @@ class _GoogleMapWidget extends HookWidget {
   }
 
   // 現在値を取得して駐車場のリストを追加する
-  Future<void> _getParking(ValueNotifier<LatLng> position,
-      ValueNotifier<Map<String, Marker>> markers,ValueNotifier<List<Parking>> parkings) async {
+  Future<void> _getParking(
+      ValueNotifier<LatLng> position,
+      ValueNotifier<Map<String, Marker>> markers,
+      ValueNotifier<List<Parking>> parkings) async {
     final keyword = "parking";
     final radius = "1500";
 // ここでもAPIキーを使用する。
@@ -242,10 +244,12 @@ class _GoogleMapWidget extends HookWidget {
       parkings.value = [];
       final res = jsonDecode(response.body);
       var results_list = res["results"];
-      for (int i = 0; i < results_list.length; i++){
+      for (int i = 0; i < results_list.length; i++) {
         var latitude = results_list[i]["geometry"]["location"]['lat'];
         var longitude = results_list[i]["geometry"]["location"]['lng'];
-        parkings.value.add(Parking(latLng:LatLng(latitude, longitude), name: results_list[i]["name"]));
+        parkings.value.add(Parking(
+            latLng: LatLng(latitude, longitude),
+            name: results_list[i]["name"]));
       }
     }
   }
@@ -253,23 +257,56 @@ class _GoogleMapWidget extends HookWidget {
   //parkings中の駐車場座標にマーカーを表示
   Future<void> _setParkingLocation(
       ValueNotifier<Map<String, Marker>> markers,
-      ValueNotifier<List<Parking>> parkings) async {
+      ValueNotifier<List<Parking>> parkings,
+      ValueNotifier<bool> showDetail,
+      ValueNotifier<Parking> showParking) async {
     final List<Parking> parkingList = parkings.value;
     final Map<String, Marker> markerMap = {};
 
     for (int i = 0; i < parkingList.length; i++) {
       final Parking parking = parkingList[i];
       final Marker marker = Marker(
-        markerId: MarkerId('parking${i + 1}'),
-        position: parking.latLng,
-        //markerをタップすると駐車場名が表示
-        infoWindow: InfoWindow(title: parking.name)
-      );
+          markerId: MarkerId('parking${i + 1}'),
+          position: parking.latLng,
+          onTap: () {
+            showParking.value = parking;
+            showDetail.value = true;
+          },
+          //markerをタップすると駐車場名が表示
+          infoWindow: InfoWindow(title: parking.name));
       markerMap['parking${i + 1}'] = marker;
     }
     //元々保持していたマーカーは削除
     markers.value.clear();
     markers.value = markerMap;
+  }
+
+  Widget _parkingDetail(
+      BuildContext context, ValueNotifier<Parking> showParking) {
+    return SimpleDialog(
+      alignment: Alignment.topCenter,
+      title: Text(showParking.value.name),
+      children: <Widget>[
+        SimpleDialogOption(
+          child: Text(
+              "latitude : " + showParking.value.latLng.latitude.toString()),
+        ),
+        SimpleDialogOption(
+          child: Text(
+              "longitude : " + showParking.value.latLng.longitude.toString()),
+        ),
+        const SimpleDialogOption(
+          child: Text("駐車難易度"),
+        ),
+        ElevatedButton(
+          child: const Text("ここに決定"),
+          onPressed: () {
+            Navigator.of(context)
+                .pushNamed("/navi", arguments: showParking.value);
+          },
+        ),
+      ],
+    );
   }
 
   @override
@@ -287,6 +324,9 @@ class _GoogleMapWidget extends HookWidget {
     final hasPositon = useState<bool>(false);
     final isSearch = useState<bool>(false);
     final parkings = useState<List<Parking>>([]);
+    final showDetail = useState<bool>(false);
+    final showParking =
+        useState<Parking>(Parking(latLng: LatLng(0, 0), name: "initial"));
 
     // 一度だけ実行(うまく動いていない)
     useEffect(() {
@@ -300,7 +340,7 @@ class _GoogleMapWidget extends HookWidget {
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
-              Navigator.of(context).pushNamed("/ranking",arguments: parkings);
+              Navigator.of(context).pushNamed("/ranking", arguments: parkings);
               // ランキング表示
             },
             icon: Icon(Icons.assignment)),
@@ -346,44 +386,42 @@ class _GoogleMapWidget extends HookWidget {
                     position.value.latitude.toString() +
                     "\n 経度 : " +
                     position.value.longitude.toString()),
-                onPressed: () async{
+                onPressed: () async {
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
-                  await _getParking(position, markers,parkings);
+                  await _getParking(position, markers, parkings);
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
                   //駐車場取得メッセージの設定
                   var parkingMessage = "";
-                    if (parkings.value.length > 0)
-                        {
-                          parkingMessage = "検索成功！";
-                          _setParkingLocation(markers, parkings);
-                        }
-                    else
-                        {
-                          parkingMessage = "駐車場はありません";
-                        };
-                        //ダイアログの表示
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text(parkingMessage),
-                                actions: [
-                                  TextButton(
-                                    child: Text("OK"),
-                                    onPressed: () => Navigator.pop(context),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                      
+                  if (parkings.value.length > 0) {
+                    parkingMessage = "検索成功！";
+                    _setParkingLocation(
+                        markers, parkings, showDetail, showParking);
+                  } else {
+                    parkingMessage = "駐車場はありません";
+                  }
+                  ;
+                  //ダイアログの表示
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(parkingMessage),
+                        actions: [
+                          TextButton(
+                            child: Text("OK"),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 }),
           ),
           if (hasPositon.value)
             _searchListView(position, hasPositon, predictions, markers),
-          
+          if (showDetail.value) _parkingDetail(context, showParking),
         ],
       ),
     );
