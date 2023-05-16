@@ -36,6 +36,7 @@ class RankingPage extends StatelessWidget {
                 children: [
                   Text('${parking.latLng.latitude}, ${parking.latLng.longitude}', style: TextStyle(color: Colors.black)),
                   Text('Congestion: ${parking.congestion}', style: TextStyle(color: Colors.black)),
+                  Text('Near Roads Width: ${parking.nearWidth}')
                 ]),
             onTap: () {
               Navigator.of(context).pushNamed("/navi", arguments: parking);
