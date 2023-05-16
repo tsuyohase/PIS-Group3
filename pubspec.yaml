@@ -53,6 +53,7 @@ dependencies:
   crypto: ^3.0.1
   firebase_ml_model_downloader: ^0.2.2
   tflite_flutter: ^0.9.5
+  flutter_polyline_points: ^1.0.0
 
 dev_dependencies:
   flutter_test:

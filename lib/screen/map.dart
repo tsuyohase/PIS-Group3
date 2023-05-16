@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import "parking.dart";
 import 'loginPage.dart';
 
 class GoogleMapWidget extends StatelessWidget {
@@ -225,6 +226,82 @@ class _GoogleMapWidget extends HookWidget {
     );
   }
 
+  // 現在値を取得して駐車場のリストを追加する
+  Future<void> _getParking(ValueNotifier<LatLng> position,
+      ValueNotifier<Map<String, Marker>> markers,ValueNotifier<List<Parking>> parkings) async {
+    final keyword = "parking";
+    final radius = "1500";
+// ここでもAPIキーを使用する。
+    String requestUrl =
+        'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${position.value.latitude}%2C${position.value.longitude}&radius=${radius}&language=ja&query=${keyword}&type=parking&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
+    http.Response? response;
+    response = await http.get(Uri.parse(requestUrl));
+    final mapController = await _mapController.future;
+
+    if (response.statusCode == 200) {
+      parkings.value = [];
+      final res = jsonDecode(response.body);
+      var results_list = res["results"];
+      for (int i = 0; i < results_list.length; i++){
+        var latitude = results_list[i]["geometry"]["location"]['lat'];
+        var longitude = results_list[i]["geometry"]["location"]['lng'];
+        parkings.value.add(Parking(latLng:LatLng(latitude, longitude), name: results_list[i]["name"]));
+      }
+    }
+  }
+    //Parkingを受け取りcongestionに値を追加
+    Future<void> _getCongestion(ValueNotifier<List<Parking>> parkings) async {
+    for (Parking parking in parkings.value) {
+      final String origin = "${parking.latLng.latitude},${parking.latLng.longitude}";
+      //駐車場の位置から少し離れた場所を目的地に設定
+      final String destination = "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
+      //リクエストパラメータの設定
+      final Map<String, String> params = {
+        "origin": origin,
+        "destination": destination,
+        "departure_time": "now",
+        "key": dotenv.get("GOOGLE_MAP_API_KEY"),
+      };
+      //目的地までの移動時間を調べる
+      final Uri uri = Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        //混雑度を考慮した移動時間
+        final durationInTraffic = data['routes'][0]['legs'][0]['duration_in_traffic']['value'];
+        //混雑度を考慮しない移動時間
+        final duration = data['routes'][0]['legs'][0]['duration']['value'];
+        //移動時間の比をcongestionとしてparkingに追加
+        final congestion = durationInTraffic / duration;
+        parking.congestion = congestion;
+      } else {
+        throw Exception("Failed to get data from API.");
+      }
+    }
+    }
+
+  //parkings中の駐車場座標にマーカーを表示
+  Future<void> _setParkingLocation(
+      ValueNotifier<Map<String, Marker>> markers,
+      ValueNotifier<List<Parking>> parkings) async {
+    final List<Parking> parkingList = parkings.value;
+    final Map<String, Marker> markerMap = {};
+
+    for (int i = 0; i < parkingList.length; i++) {
+      final Parking parking = parkingList[i];
+      final Marker marker = Marker(
+        markerId: MarkerId('parking${i + 1}'),
+        position: parking.latLng,
+        //markerをタップすると駐車場名が表示
+        infoWindow: InfoWindow(title: parking.name)
+      );
+      markerMap['parking${i + 1}'] = marker;
+    }
+    //元々保持していたマーカーは削除
+    markers.value.clear();
+    markers.value = markerMap;
+  }
+
   @override
   Widget build(BuildContext context) {
     // 初期表示座標のMarkerを設定
@@ -239,6 +316,7 @@ class _GoogleMapWidget extends HookWidget {
     final predictions = useState<List<AutocompletePrediction>>([]);
     final hasPositon = useState<bool>(false);
     final isSearch = useState<bool>(false);
+    final parkings = useState<List<Parking>>([]);
 
     // 一度だけ実行(うまく動いていない)
     useEffect(() {
@@ -252,6 +330,7 @@ class _GoogleMapWidget extends HookWidget {
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
+              Navigator.of(context).pushNamed("/ranking",arguments: parkings);
               // ランキング表示
             },
             icon: Icon(Icons.assignment)),
@@ -297,15 +376,46 @@ class _GoogleMapWidget extends HookWidget {
                     position.value.latitude.toString() +
                     "\n 経度 : " +
                     position.value.longitude.toString()),
-                onPressed: () {
+                onPressed: () async{
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
+                  await _getParking(position, markers,parkings);
+                  //混雑度の追加(コメントアウト可)
+                  await _getCongestion(parkings);
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
+                  //駐車場取得メッセージの設定
+                  var parkingMessage = "";
+                    if (parkings.value.length > 0)
+                        {
+                          parkingMessage = "検索成功！";
+                          _setParkingLocation(markers, parkings);       
+                        }
+                    else
+                        {
+                          parkingMessage = "駐車場はありません";
+                        };
+                        //ダイアログの表示
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(parkingMessage),
+                                actions: [
+                                  TextButton(
+                                    child: Text("OK"),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                      
                 }),
           ),
           if (hasPositon.value)
             _searchListView(position, hasPositon, predictions, markers),
+          
         ],
       ),
     );
