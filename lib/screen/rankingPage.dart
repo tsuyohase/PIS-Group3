@@ -26,8 +26,12 @@ class RankingPage extends StatelessWidget {
           final parking = parkings.value[index];
           return ListTile(
             title: Text(parking.name),
-            subtitle:
-                Text('${parking.latLng.latitude}, ${parking.latLng.longitude}'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${parking.latLng.latitude}, ${parking.latLng.longitude}'),
+                  Text('Congestion: ${parking.congestion}'),
+                ]),
             onTap: () {
               Navigator.of(context).pushNamed("/navi", arguments: parking);
             },
