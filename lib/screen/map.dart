@@ -254,6 +254,41 @@ class _GoogleMapWidget extends HookWidget {
     }
   }
 
+  //Parkingを受け取りcongestionに値を追加
+  Future<void> _getCongestion(ValueNotifier<List<Parking>> parkings) async {
+    for (Parking parking in parkings.value) {
+      final String origin =
+          "${parking.latLng.latitude},${parking.latLng.longitude}";
+      //駐車場の位置から少し離れた場所を目的地に設定
+      final String destination =
+          "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
+      //リクエストパラメータの設定
+      final Map<String, String> params = {
+        "origin": origin,
+        "destination": destination,
+        "departure_time": "now",
+        "key": dotenv.get("GOOGLE_MAP_API_KEY"),
+      };
+      //目的地までの移動時間を調べる
+      final Uri uri =
+          Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        //混雑度を考慮した移動時間
+        final durationInTraffic =
+            data['routes'][0]['legs'][0]['duration_in_traffic']['value'];
+        //混雑度を考慮しない移動時間
+        final duration = data['routes'][0]['legs'][0]['duration']['value'];
+        //移動時間の比をcongestionとしてparkingに追加
+        final congestion = durationInTraffic / duration;
+        parking.congestion = congestion;
+      } else {
+        throw Exception("Failed to get data from API.");
+      }
+    }
+  }
+
   //parkings中の駐車場座標にマーカーを表示
   Future<void> _setParkingLocation(
       ValueNotifier<Map<String, Marker>> markers,
@@ -391,6 +426,7 @@ class _GoogleMapWidget extends HookWidget {
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
                   await _getParking(position, markers, parkings);
+                  await _getCongestion(parkings);
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
                   //駐車場取得メッセージの設定
                   var parkingMessage = "";

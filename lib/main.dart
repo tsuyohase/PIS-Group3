@@ -14,6 +14,8 @@ import "package:parking_app/screen/rankingPage.dart";
 import 'package:parking_app/screen/parking.dart';
 import "package:parking_app/screen/naviPage.dart";
 
+import 'screen/machineLearningPage.dart';
+
 void main() async {
   await dotenv.load(fileName: '.env');
   runApp(ProviderScope(child: MyApp()));
@@ -50,7 +52,8 @@ class MyApp extends ConsumerWidget {
               parkings: ModalRoute.of(context)!.settings.arguments
                   as ValueNotifier<List<Parking>>),
           '/navi': (BuildContext context) => new NaviPage(
-              parking: ModalRoute.of(context)!.settings.arguments as Parking)
+              parking: ModalRoute.of(context)!.settings.arguments as Parking),
+          '/mlpage': (BuildContext context) => new MachineLearningPage(),
         });
   }
 }

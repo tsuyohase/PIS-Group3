@@ -13,6 +13,38 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
+///初心者マークの描画
+class _LeftDiagonalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..lineTo(size.width * 1.0, size.height * 0.3)
+      ..lineTo(size.width * 1.0, size.height * 1.0)
+      ..lineTo(0, size.height * 0.7)
+      ..close();
+  }
+  @override
+  bool shouldReclip(CustomClipper oldclipper) {
+    return true;
+  }
+}
+class _RightDiagonalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip (Size size) {
+    return Path()
+      ..lineTo(0, size.height * 0.3)
+      ..lineTo(size.width * 1.0, 0)
+      ..lineTo(size.width * 1.0, size.height * 0.7)
+      ..lineTo(0, size.height * 1.0)
+      ..close();
+  }
+  @override
+  bool shouldReclip(CustomClipper oldclipper) {
+    return true;
+  }
+}
+
+
 class _LoginPageState extends State<LoginPage> {
   var _idController = TextEditingController();
   var _passController = TextEditingController();
@@ -67,12 +99,12 @@ class _LoginPageState extends State<LoginPage> {
         });
       } else {
         setState(() {
-          infoText = "ログインNG：${e.toString()}";
+          infoText = "ログインNG:${e.toString()}";
         });
       }
     } catch (e) {
       setState(() {
-        infoText = "ログインNG：${e.toString()}";
+        infoText = "ログインNG:${e.toString()}";
       });
     }
   }
@@ -80,64 +112,142 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
+
       backgroundColor: const Color.fromARGB(255, 215, 213, 213),
+
       appBar: AppBar(
         backgroundColor: Colors.green,
         title: Container(
-          alignment: Alignment.centerLeft,
-          child: const Text('Log In Page', style: TextStyle(color: Colors.black)),
+          child: const Text('Log In Page', style: TextStyle(color: Colors.white)),
       )
       ),
-      
+
       body: 
-      Column(
+      SingleChildScrollView(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-        /// メールアドレス入力
-        TextField(       
-          decoration: const InputDecoration(
-            label: Text('E-mail', style: TextStyle(color: Colors.black)),
-          ),
-          controller: _idController,
-          style: const TextStyle(color: Colors.black)
-        ),
-
-        /// パスワード入力
-        TextField(
-          decoration: const InputDecoration(
-            label: Text('Password', style: TextStyle(color: Colors.black)),
-          ),
-          controller: _passController,
-          obscureText: true,
-          style: const TextStyle(color: Colors.black),
-        ),
-
+        
+        Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+        
+        ///初心者マーク
         Container(
-          margin: const EdgeInsets.all(10),
+          height: 100,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ClipPath(
+                clipper: _LeftDiagonalClipper(),
+                child: Container(
+                decoration: BoxDecoration(
+///              border: Border.all(color: Colors.black.withOpacity(0.5), width: 4),
+///              borderRadius: BorderRadius.circular(8),
+                 color: Colors.yellow.withOpacity(0.5)),
+                width: 30,)
+              ),
+              ClipPath(
+                clipper: _RightDiagonalClipper(),
+                child: Container(
+                decoration: BoxDecoration(
+///              border: Border.all(color: Colors.black.withOpacity(0.5), width: 4),
+///              borderRadius: BorderRadius.circular(8),
+                 color: Colors.green.withOpacity(0.5)),
+                width: 30,)
+              )
+            ]
+          )
+        ),
+        ///タイトル
+        Text(
+          'App Title', 
+          style: TextStyle(
+            color: Colors.black, 
+            fontSize: 36,
+            fontWeight: FontWeight.bold)
+            )
+        ] 
+        ),   
+
+      Container(
+        height: 400,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+      
+        ///白線
+        Container(
+          width: 20,
+          color: Colors.white
+        ),
+      
+      Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+
+        /// メールアドレス入力
+        Container(
           width: 250,
+          child: TextField(
+            decoration: InputDecoration(
+            label: Text('E-mail address', style: TextStyle(color: Colors.green))),   
+          controller: _idController,
+          obscureText: false,
+          ),
+         ),
+
+        ///パスワード入力
+        Container(
+          width: 250,
+          child: TextField(
+            decoration: InputDecoration(
+             label: Text('Password', style: TextStyle(color: Colors.green))),
+            controller: _passController,
+            obscureText: true,
+          ),
+        ),
+
+        ///ログインボタン
+        Container(
+          width: 150,
           height: 50,
           child: ElevatedButton(
             onPressed: () async {
               _loginAccount(_idController.text, _passController.text);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
-            child: const Text('Log In', style: TextStyle(color: Colors.black) ),
+            child: const Text('Log In', style: TextStyle(fontSize: 18, color: Colors.black) ),
           ),
         ),
+
+        ///アカウント新規作成ボタン
         Container(
           width: 250,
           height: 50,
           child: ElevatedButton(
-            child: const Text("Create New Account", style: TextStyle(color: Colors.black)),
+            child: const Text("Create New Account", style: TextStyle(fontSize: 18, color: Colors.black)),
             onPressed: () async {
               Navigator.of(context).pushNamed("/register");
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
           ),
         ),
+        ])),
+         
+        ///白線
+        Container(
+          width: 20,
+          color: Colors.white)
+
+          ])),
+
         const SizedBox(height: 8),
         Text(infoText),
-      ]),
+        ]),
+      )
     );
   }
 }

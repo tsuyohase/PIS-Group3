@@ -41,6 +41,11 @@ class HomePage extends ConsumerWidget {
                 onPressed: () {
                   Navigator.of(context).pushNamed("/mypage");
                 }),
+            TextButton(
+                child: Icon(Icons.book),
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/mlpage");
+                }),
           ]),
         ));
   }

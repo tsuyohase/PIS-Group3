@@ -10,6 +10,38 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPage();
 }
 
+///初心者マークの描画
+class _LeftDiagonalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..lineTo(size.width * 1.0, size.height * 0.3)
+      ..lineTo(size.width * 1.0, size.height * 1.0)
+      ..lineTo(0, size.height * 0.7)
+      ..close();
+  }
+  @override
+  bool shouldReclip(CustomClipper oldclipper) {
+    return true;
+  }
+}
+class _RightDiagonalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip (Size size) {
+    return Path()
+      ..lineTo(0, size.height * 0.3)
+      ..lineTo(size.width * 1.0, 0)
+      ..lineTo(size.width * 1.0, size.height * 0.7)
+      ..lineTo(0, size.height * 1.0)
+      ..close();
+  }
+  @override
+  bool shouldReclip(CustomClipper oldclipper) {
+    return true;
+  }
+}
+
+
 class _RegisterPage extends State<RegisterPage> {
   var _idController = TextEditingController();
   var _passController = TextEditingController();
@@ -83,39 +115,124 @@ class _RegisterPage extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
+      backgroundColor:const Color.fromARGB(255, 215, 213, 213),
       appBar: AppBar(
-        title: const Text('新規登録ページ'),
+        backgroundColor: Colors.green,
+        title: const Text('Sign Up'),
       ),
-      body: Column(children: [
-        /// メールアドレス入力
-        TextField(
-          decoration: const InputDecoration(
-            label: Text('E-mail'),
-          ),
-          controller: _idController,
-        ),
+      body: 
+      SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
 
-        /// パスワード入力
-        TextField(
-          decoration: const InputDecoration(
-            label: Text('Password'),
-          ),
-          controller: _passController,
-          obscureText: true,
+        Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+        ///初心者マーク
+        Container(
+          height: 100,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ClipPath(
+                clipper: _LeftDiagonalClipper(),
+                child: 
+              Container(
+                decoration: BoxDecoration(
+///              border: Border.all(color: Colors.black, width: 4),
+///              borderRadius: BorderRadius.circular(8),
+                 color: Colors.yellow.withOpacity(0.5)),
+                width: 30
+              )),
+              ClipPath(
+                clipper: _RightDiagonalClipper(),
+                child: 
+              Container(
+                decoration: BoxDecoration(
+///              border: Border.all(color: Colors.black, width: 4),
+///              borderRadius: BorderRadius.circular(8),
+                 color: Colors.green.withOpacity(0.5)),
+                width: 30
+              ))
+            ]
+          )
+        ),
+        ///タイトル
+        Text(
+          'App Title', 
+          style: TextStyle(color: Colors.black,
+          fontSize: 36, 
+          fontWeight: FontWeight.bold))
+        ]
         ),
 
         Container(
-          margin: const EdgeInsets.all(10),
+         height: 400,
+         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+
+        ///白線
+          Container(
+            width: 20,
+            color: Colors.white
+            ),
+        
+        Container(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+
+        /// メールアドレス入力
+        Container(
+          width: 250,
+          child: TextField(
+            decoration: InputDecoration(
+              label: Text('E-mail Address', style: TextStyle(color: Colors.green))),
+              controller: _idController,
+              obscureText: false,
+          ),
+        ),
+        
+        /// パスワード入力
+        Container(
+          width: 250,
+          child: TextField(
+            decoration: InputDecoration(
+              label: Text('Password', style: TextStyle(color: Colors.green))),
+          controller: _passController,
+          obscureText: true,
+          ),
+        ),
+
+        ///アカウント作成ボタン
+        Container(
+          width: 150,
+          height: 50,
           child: ElevatedButton(
             onPressed: () {
               _createAccount(_idController.text, _passController.text);
             },
-            child: const Text('アカウント作成'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+            child: const Text('Sign Up', style: TextStyle(fontSize: 18, color: Colors.black)),
           ),
         ),
+
+      ])),
+
+        ///白線
+        Container(
+          width: 20,
+          color: Colors.white),
+        
+        ])), 
+
         const SizedBox(height: 8),
         Text(infoText),
       ]),
+      )
     );
   }
 }
