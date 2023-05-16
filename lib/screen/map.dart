@@ -142,10 +142,10 @@ class _GoogleMapWidget extends HookWidget {
         }
       },
       autofocus: true, //TextFieldが表示されるときにフォーカスする（キーボードを表示する）
-      cursorColor: Colors.white, //カーソルの色
+      cursorColor: Colors.black, //カーソルの色
       style: const TextStyle(
         //テキストのスタイル
-        color: Colors.white,
+        color: Colors.black,
         fontSize: 20,
       ),
       textInputAction: TextInputAction.search, //キーボードのアクションボタンを指定
@@ -153,14 +153,14 @@ class _GoogleMapWidget extends HookWidget {
         //TextFiledのスタイル
         enabledBorder: UnderlineInputBorder(
             //デフォルトのTextFieldの枠線
-            borderSide: BorderSide(color: Colors.white)),
+            borderSide: BorderSide(color: Colors.black)),
         focusedBorder: UnderlineInputBorder(
             //TextFieldにフォーカス時の枠線
-            borderSide: BorderSide(color: Colors.white)),
+            borderSide: BorderSide(color: Colors.black)),
         hintText: 'Search', //何も入力してないときに表示されるテキスト
         hintStyle: TextStyle(
           //hintTextのスタイル
-          color: Colors.white60,
+          color: Color.fromARGB(255, 215, 213, 213),
           fontSize: 20,
         ),
       ),
@@ -436,12 +436,13 @@ class _GoogleMapWidget extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 215, 213, 213),
         leading: IconButton(
             onPressed: () {
               Navigator.of(context).pushNamed("/ranking", arguments: parkings);
               // ランキング表示
             },
-            icon: Icon(Icons.assignment)),
+            icon: Icon(Icons.assignment, color: Colors.black)),
         title: !isSearch.value
             ? Center(
                 child: IconButton(
@@ -449,7 +450,7 @@ class _GoogleMapWidget extends HookWidget {
                       isSearch.value = true;
                       predictions.value = [];
                     },
-                    icon: Icon(Icons.search)),
+                    icon: Icon(Icons.search, color: Colors.black)),
               )
             : _searchTextField(hasPositon, predictions),
         actions: !isSearch.value
@@ -459,12 +460,12 @@ class _GoogleMapWidget extends HookWidget {
                         onPressed: () {
                           Navigator.of(context).pushNamed("/login");
                         },
-                        icon: Icon(Icons.login))
+                        icon: Icon(Icons.login, color: Colors.black))
                     : IconButton(
                         onPressed: () {
                           Navigator.of(context).pushNamed("/mypage");
                         },
-                        icon: Icon(Icons.person))
+                        icon: Icon(Icons.person, color: Colors.black))
               ]
             : [
                 IconButton(
@@ -480,11 +481,13 @@ class _GoogleMapWidget extends HookWidget {
           Container(
             alignment: Alignment.bottomCenter,
             child: ElevatedButton(
-                child: Text("ここで駐車場検索！\n 緯度 : " +
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+                child: Text("Let's Search!\n 緯度 : " +
                     position.value.latitude.toString() +
                     "\n 経度 : " +
-                    position.value.longitude.toString()),
-                onPressed: () async {
+                    position.value.longitude.toString(),
+                    style: TextStyle(color: Colors.black),),
+                onPressed: () async{
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
@@ -495,22 +498,23 @@ class _GoogleMapWidget extends HookWidget {
                   //駐車場取得メッセージの設定
                   var parkingMessage = "";
                   if (parkings.value.length > 0) {
-                    parkingMessage = "検索成功！";
+                    parkingMessage = "Success！";
                     _setParkingLocation(
                         markers, parkings, showDetail, showParking);
                   } else {
-                    parkingMessage = "駐車場はありません";
-                  }
-                  ;
+                    parkingMessage = "Failed...";
+                  };
                   //ダイアログの表示
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
+                        backgroundColor: Color.fromARGB(255, 215, 213, 213),
                         title: Text(parkingMessage),
                         actions: [
                           TextButton(
-                            child: Text("OK"),
+                            style: TextButton.styleFrom(backgroundColor: Colors.yellow),
+                            child: Text("OK", style: TextStyle(color: Colors.black)),
                             onPressed: () => Navigator.pop(context),
                           ),
                         ],
