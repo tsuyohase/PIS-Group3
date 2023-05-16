@@ -11,6 +11,8 @@ import 'package:parking_app/screen/map.dart';
 import 'package:parking_app/screen/registerPage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'screen/machineLearningPage.dart';
+
 void main() async {
   await dotenv.load(fileName: '.env');
   runApp(ProviderScope(child: MyApp()));
@@ -43,6 +45,7 @@ class MyApp extends ConsumerWidget {
         '/register': (BuildContext context) => new RegisterPage(),
         '/navitime': (BuildContext context) => new NavitimePage(),
         '/mypage': (BuildContext context) => new MyPage(),
+        '/mlpage': (BuildContext context) => new MachineLearningPage(),
       },
     );
   }
