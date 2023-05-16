@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import "parking.dart";
 import 'loginPage.dart';
+import 'package:crypto/crypto.dart';
 
 class GoogleMapWidget extends StatelessWidget {
   const GoogleMapWidget({super.key});
@@ -279,7 +280,63 @@ class _GoogleMapWidget extends HookWidget {
       }
     }
     }
-
+    //parkingsを受け取り
+    Future<void> _getNearWidth(ValueNotifier<List<Parking>> parkings) async {
+      //変数定義
+      const String REQUEST_CODE = "i3uWChjt4PVAiv7VAyAS";
+      const CID = "p2300410";
+      const NAVITIME_HOST = "trial.api-service.navitime.biz";
+      const QUERY = "v1/shape_car";
+      //環境変数の読み込み
+      await dotenv.load(fileName: '.env');
+      final signature_key = utf8.encode(dotenv.get('NAVITIME_API_KEY'));
+      //署名の発行
+      String signature = Hmac(sha256, signature_key).convert(utf8.encode(REQUEST_CODE)).toString();
+      //  final Uri uri = Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
+      //final response = await http.get(uri);
+      for (Parking parking in parkings.value){
+        final String origin = "${parking.latLng.latitude},${parking.latLng.longitude}";
+        //駐車場の位置から少し離れた場所を目的地に設定
+        final String destination = "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";      
+        final dio = Dio();
+        //String url = "https://$NAVITIME_HOST/$CID/$QUERY";
+        final url = 'https://$NAVITIME_HOST/$CID/$QUERY?start=$origin&goal=$destination&request_code=$REQUEST_CODE&signature=$signature';
+       
+        //final response = await http.get(uri);
+        /*
+        Map<String, String> params = {
+          "start": origin,
+          "goal": destination,
+          "request_code": dotenv.get("NAVITIME_API_KEY"),
+          "signature": signature
+        };
+        final Uri uri = Uri.https(NAVITIME_HOST,"/$CID/$QUERY",params);*/
+        try {
+          
+          final response = await dio.get(url);
+          //final response = await http.get(Uri.parse(url), headers: params);
+          if (response.statusCode == 200) {
+            final features = response.data["features"] as List<dynamic>;
+            //List features = jsonDecode(response.data)["features"];
+            if (features.isNotEmpty) {
+              List nearWidthList = [];
+              String nearWidth = "";
+              for (var feature in features) {
+                if (feature["properties"].containsKey("road_width_grade")) {
+                  nearWidth = (feature["properties"]["road_width_grade"]);
+                  break;
+                }
+              }
+              parking.nearWidth = nearWidth;
+            }
+          } else {
+            throw Exception("Failed to load data from server.");
+          }
+        } catch (error) {
+          throw Exception(error.toString());
+        }
+      }
+    }
   //parkings中の駐車場座標にマーカーを表示
   Future<void> _setParkingLocation(
       ValueNotifier<Map<String, Marker>> markers,
@@ -384,6 +441,7 @@ class _GoogleMapWidget extends HookWidget {
                   //混雑度の追加(コメントアウト可)
                   await _getCongestion(parkings);
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
+                  await _getNearWidth(parkings);
                   //駐車場取得メッセージの設定
                   var parkingMessage = "";
                     if (parkings.value.length > 0)
