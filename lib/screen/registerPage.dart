@@ -10,6 +10,7 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPage();
 }
 
+///初心者マークの描画
 class _LeftDiagonalClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -24,7 +25,6 @@ class _LeftDiagonalClipper extends CustomClipper<Path> {
     return true;
   }
 }
-
 class _RightDiagonalClipper extends CustomClipper<Path> {
   @override
   Path getClip (Size size) {
@@ -40,6 +40,7 @@ class _RightDiagonalClipper extends CustomClipper<Path> {
     return true;
   }
 }
+
 
 class _RegisterPage extends State<RegisterPage> {
   var _idController = TextEditingController();
@@ -114,12 +115,15 @@ class _RegisterPage extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor:const Color.fromARGB(255, 215, 213, 213),
       appBar: AppBar(
         backgroundColor: Colors.green,
         title: const Text('Sign Up'),
       ),
-      body: Column(
+      body: 
+      SingleChildScrollView(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
 
@@ -188,7 +192,7 @@ class _RegisterPage extends State<RegisterPage> {
             decoration: InputDecoration(
               label: Text('E-mail Address', style: TextStyle(color: Colors.green))),
               controller: _idController,
-              obscureText: true,
+              obscureText: false,
           ),
         ),
         
@@ -228,6 +232,7 @@ class _RegisterPage extends State<RegisterPage> {
         const SizedBox(height: 8),
         Text(infoText),
       ]),
+      )
     );
   }
 }

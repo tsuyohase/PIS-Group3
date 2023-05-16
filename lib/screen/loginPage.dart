@@ -13,6 +13,7 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
+///初心者マークの描画
 class _LeftDiagonalClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -27,7 +28,6 @@ class _LeftDiagonalClipper extends CustomClipper<Path> {
     return true;
   }
 }
-
 class _RightDiagonalClipper extends CustomClipper<Path> {
   @override
   Path getClip (Size size) {
@@ -43,6 +43,7 @@ class _RightDiagonalClipper extends CustomClipper<Path> {
     return true;
   }
 }
+
 
 class _LoginPageState extends State<LoginPage> {
   var _idController = TextEditingController();
@@ -111,6 +112,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
+
       backgroundColor: const Color.fromARGB(255, 215, 213, 213),
 
       appBar: AppBar(
@@ -121,7 +124,8 @@ class _LoginPageState extends State<LoginPage> {
       ),
 
       body: 
-      Column(
+      SingleChildScrollView(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
         
@@ -191,10 +195,10 @@ class _LoginPageState extends State<LoginPage> {
             decoration: InputDecoration(
             label: Text('E-mail address', style: TextStyle(color: Colors.green))),   
           controller: _idController,
-          obscureText: true,
+          obscureText: false,
           ),
-        ),
-      
+         ),
+
         ///パスワード入力
         Container(
           width: 250,
@@ -242,7 +246,8 @@ class _LoginPageState extends State<LoginPage> {
 
         const SizedBox(height: 8),
         Text(infoText),
-        ])
+        ]),
+      )
     );
   }
 }
