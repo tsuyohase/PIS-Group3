@@ -228,8 +228,10 @@ class _GoogleMapWidget extends HookWidget {
   }
 
   // 現在値を取得して駐車場のリストを追加する
-  Future<void> _getParking(ValueNotifier<LatLng> position,
-      ValueNotifier<Map<String, Marker>> markers,ValueNotifier<List<Parking>> parkings) async {
+  Future<void> _getParking(
+      ValueNotifier<LatLng> position,
+      ValueNotifier<Map<String, Marker>> markers,
+      ValueNotifier<List<Parking>> parkings) async {
     final keyword = "parking";
     final radius = "1500";
 // ここでもAPIキーを使用する。
@@ -243,19 +245,24 @@ class _GoogleMapWidget extends HookWidget {
       parkings.value = [];
       final res = jsonDecode(response.body);
       var results_list = res["results"];
-      for (int i = 0; i < results_list.length; i++){
+      for (int i = 0; i < results_list.length; i++) {
         var latitude = results_list[i]["geometry"]["location"]['lat'];
         var longitude = results_list[i]["geometry"]["location"]['lng'];
-        parkings.value.add(Parking(latLng:LatLng(latitude, longitude), name: results_list[i]["name"]));
+        parkings.value.add(Parking(
+            latLng: LatLng(latitude, longitude),
+            name: results_list[i]["name"]));
       }
     }
   }
-    //Parkingを受け取りcongestionに値を追加
-    Future<void> _getCongestion(ValueNotifier<List<Parking>> parkings) async {
+
+  //Parkingを受け取りcongestionに値を追加
+  Future<void> _getCongestion(ValueNotifier<List<Parking>> parkings) async {
     for (Parking parking in parkings.value) {
-      final String origin = "${parking.latLng.latitude},${parking.latLng.longitude}";
+      final String origin =
+          "${parking.latLng.latitude},${parking.latLng.longitude}";
       //駐車場の位置から少し離れた場所を目的地に設定
-      final String destination = "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
+      final String destination =
+          "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
       //リクエストパラメータの設定
       final Map<String, String> params = {
         "origin": origin,
@@ -264,12 +271,14 @@ class _GoogleMapWidget extends HookWidget {
         "key": dotenv.get("GOOGLE_MAP_API_KEY"),
       };
       //目的地までの移動時間を調べる
-      final Uri uri = Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
+      final Uri uri =
+          Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         //混雑度を考慮した移動時間
-        final durationInTraffic = data['routes'][0]['legs'][0]['duration_in_traffic']['value'];
+        final durationInTraffic =
+            data['routes'][0]['legs'][0]['duration_in_traffic']['value'];
         //混雑度を考慮しない移動時間
         final duration = data['routes'][0]['legs'][0]['duration']['value'];
         //移動時間の比をcongestionとしてparkingに追加
@@ -279,31 +288,37 @@ class _GoogleMapWidget extends HookWidget {
         throw Exception("Failed to get data from API.");
       }
     }
-    }
-    //parkingsを受け取り
-    Future<void> _getNearWidth(ValueNotifier<List<Parking>> parkings) async {
-      //変数定義
-      const String REQUEST_CODE = "i3uWChjt4PVAiv7VAyAS";
-      const CID = "p2300410";
-      const NAVITIME_HOST = "trial.api-service.navitime.biz";
-      const QUERY = "v1/shape_car";
-      //環境変数の読み込み
-      await dotenv.load(fileName: '.env');
-      final signature_key = utf8.encode(dotenv.get('NAVITIME_API_KEY'));
-      //署名の発行
-      String signature = Hmac(sha256, signature_key).convert(utf8.encode(REQUEST_CODE)).toString();
-      //  final Uri uri = Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
+  }
+
+  //parkingsを受け取り
+  Future<void> _getNearWidth(ValueNotifier<List<Parking>> parkings) async {
+    //変数定義
+    const String REQUEST_CODE = "i3uWChjt4PVAiv7VAyAS";
+    const CID = "p2300410";
+    const NAVITIME_HOST = "trial.api-service.navitime.biz";
+    const QUERY = "v1/shape_car";
+    //環境変数の読み込み
+    await dotenv.load(fileName: '.env');
+    final signature_key = utf8.encode(dotenv.get('NAVITIME_API_KEY'));
+    //署名の発行
+    String signature = Hmac(sha256, signature_key)
+        .convert(utf8.encode(REQUEST_CODE))
+        .toString();
+    //  final Uri uri = Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
+    //final response = await http.get(uri);
+    for (Parking parking in parkings.value) {
+      final String origin =
+          "${parking.latLng.latitude},${parking.latLng.longitude}";
+      //駐車場の位置から少し離れた場所を目的地に設定
+      final String destination =
+          "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
+      final dio = Dio();
+      //String url = "https://$NAVITIME_HOST/$CID/$QUERY";
+      final url =
+          'https://$NAVITIME_HOST/$CID/$QUERY?start=$origin&goal=$destination&request_code=$REQUEST_CODE&signature=$signature';
+
       //final response = await http.get(uri);
-      for (Parking parking in parkings.value){
-        final String origin = "${parking.latLng.latitude},${parking.latLng.longitude}";
-        //駐車場の位置から少し離れた場所を目的地に設定
-        final String destination = "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";      
-        final dio = Dio();
-        //String url = "https://$NAVITIME_HOST/$CID/$QUERY";
-        final url = 'https://$NAVITIME_HOST/$CID/$QUERY?start=$origin&goal=$destination&request_code=$REQUEST_CODE&signature=$signature';
-       
-        //final response = await http.get(uri);
-        /*
+      /*
         Map<String, String> params = {
           "start": origin,
           "goal": destination,
@@ -311,52 +326,85 @@ class _GoogleMapWidget extends HookWidget {
           "signature": signature
         };
         final Uri uri = Uri.https(NAVITIME_HOST,"/$CID/$QUERY",params);*/
-        try {
-          
-          final response = await dio.get(url);
-          //final response = await http.get(Uri.parse(url), headers: params);
-          if (response.statusCode == 200) {
-            final features = response.data["features"] as List<dynamic>;
-            //List features = jsonDecode(response.data)["features"];
-            if (features.isNotEmpty) {
-              List nearWidthList = [];
-              String nearWidth = "";
-              for (var feature in features) {
-                if (feature["properties"].containsKey("road_width_grade")) {
-                  nearWidth = (feature["properties"]["road_width_grade"]);
-                  break;
-                }
+      try {
+        final response = await dio.get(url);
+        //final response = await http.get(Uri.parse(url), headers: params);
+        if (response.statusCode == 200) {
+          final features = response.data["features"] as List<dynamic>;
+          //List features = jsonDecode(response.data)["features"];
+          if (features.isNotEmpty) {
+            List nearWidthList = [];
+            String nearWidth = "";
+            for (var feature in features) {
+              if (feature["properties"].containsKey("road_width_grade")) {
+                nearWidth = (feature["properties"]["road_width_grade"]);
+                break;
               }
-              parking.nearWidth = nearWidth;
             }
-          } else {
-            throw Exception("Failed to load data from server.");
+            parking.nearWidth = nearWidth;
           }
-        } catch (error) {
-          throw Exception(error.toString());
+        } else {
+          throw Exception("Failed to load data from server.");
         }
+      } catch (error) {
+        throw Exception(error.toString());
       }
     }
+  }
+
   //parkings中の駐車場座標にマーカーを表示
   Future<void> _setParkingLocation(
       ValueNotifier<Map<String, Marker>> markers,
-      ValueNotifier<List<Parking>> parkings) async {
+      ValueNotifier<List<Parking>> parkings,
+      ValueNotifier<bool> showDetail,
+      ValueNotifier<Parking> showParking) async {
     final List<Parking> parkingList = parkings.value;
     final Map<String, Marker> markerMap = {};
 
     for (int i = 0; i < parkingList.length; i++) {
       final Parking parking = parkingList[i];
       final Marker marker = Marker(
-        markerId: MarkerId('parking${i + 1}'),
-        position: parking.latLng,
-        //markerをタップすると駐車場名が表示
-        infoWindow: InfoWindow(title: parking.name)
-      );
+          markerId: MarkerId('parking${i + 1}'),
+          position: parking.latLng,
+          onTap: () {
+            showParking.value = parking;
+            showDetail.value = true;
+          },
+          //markerをタップすると駐車場名が表示
+          infoWindow: InfoWindow(title: parking.name));
       markerMap['parking${i + 1}'] = marker;
     }
     //元々保持していたマーカーは削除
     markers.value.clear();
     markers.value = markerMap;
+  }
+
+  Widget _parkingDetail(
+      BuildContext context, ValueNotifier<Parking> showParking) {
+    return SimpleDialog(
+      alignment: Alignment.topCenter,
+      title: Text(showParking.value.name),
+      children: <Widget>[
+        SimpleDialogOption(
+          child: Text(
+              "latitude : " + showParking.value.latLng.latitude.toString()),
+        ),
+        SimpleDialogOption(
+          child: Text(
+              "longitude : " + showParking.value.latLng.longitude.toString()),
+        ),
+        const SimpleDialogOption(
+          child: Text("駐車難易度"),
+        ),
+        ElevatedButton(
+          child: const Text("ここに決定"),
+          onPressed: () {
+            Navigator.of(context)
+                .pushNamed("/navi", arguments: showParking.value);
+          },
+        ),
+      ],
+    );
   }
 
   @override
@@ -374,6 +422,9 @@ class _GoogleMapWidget extends HookWidget {
     final hasPositon = useState<bool>(false);
     final isSearch = useState<bool>(false);
     final parkings = useState<List<Parking>>([]);
+    final showDetail = useState<bool>(false);
+    final showParking =
+        useState<Parking>(Parking(latLng: LatLng(0, 0), name: "initial"));
 
     // 一度だけ実行(うまく動いていない)
     useEffect(() {
@@ -387,7 +438,7 @@ class _GoogleMapWidget extends HookWidget {
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
-              Navigator.of(context).pushNamed("/ranking",arguments: parkings);
+              Navigator.of(context).pushNamed("/ranking", arguments: parkings);
               // ランキング表示
             },
             icon: Icon(Icons.assignment)),
@@ -433,47 +484,44 @@ class _GoogleMapWidget extends HookWidget {
                     position.value.latitude.toString() +
                     "\n 経度 : " +
                     position.value.longitude.toString()),
-                onPressed: () async{
+                onPressed: () async {
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
-                  await _getParking(position, markers,parkings);
-                  //混雑度の追加(コメントアウト可)
+                  await _getParking(position, markers, parkings);
                   await _getCongestion(parkings);
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
                   await _getNearWidth(parkings);
                   //駐車場取得メッセージの設定
                   var parkingMessage = "";
-                    if (parkings.value.length > 0)
-                        {
-                          parkingMessage = "検索成功！";
-                          _setParkingLocation(markers, parkings);       
-                        }
-                    else
-                        {
-                          parkingMessage = "駐車場はありません";
-                        };
-                        //ダイアログの表示
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text(parkingMessage),
-                                actions: [
-                                  TextButton(
-                                    child: Text("OK"),
-                                    onPressed: () => Navigator.pop(context),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                      
+                  if (parkings.value.length > 0) {
+                    parkingMessage = "検索成功！";
+                    _setParkingLocation(
+                        markers, parkings, showDetail, showParking);
+                  } else {
+                    parkingMessage = "駐車場はありません";
+                  }
+                  ;
+                  //ダイアログの表示
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(parkingMessage),
+                        actions: [
+                          TextButton(
+                            child: Text("OK"),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 }),
           ),
           if (hasPositon.value)
             _searchListView(position, hasPositon, predictions, markers),
-          
+          if (showDetail.value) _parkingDetail(context, showParking),
         ],
       ),
     );
