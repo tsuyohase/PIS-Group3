@@ -15,7 +15,6 @@ class RankingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    parkings.value.sort((a, b) => a.name.compareTo(b.name));
     return Scaffold(
       appBar: AppBar(
         title: Text('Parking Ranking'),
@@ -26,12 +25,12 @@ class RankingPage extends StatelessWidget {
           final parking = parkings.value[index];
           return ListTile(
             title: Text(parking.name),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('${parking.latLng.latitude}, ${parking.latLng.longitude}'),
-                  Text('Congestion: ${parking.congestion}'),
-                ]),
+            subtitle:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${parking.latLng.latitude}, ${parking.latLng.longitude}'),
+              Text('Congestion: ${parking.congestion}'),
+              Text('Difficulty: ${parking.difficulty}'),
+            ]),
             onTap: () {
               Navigator.of(context).pushNamed("/navi", arguments: parking);
             },
