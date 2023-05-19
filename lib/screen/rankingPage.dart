@@ -16,27 +16,46 @@ class RankingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Parking Ranking'),
-      ),
-      body: ListView.builder(
-        itemCount: parkings.value.length,
-        itemBuilder: (context, index) {
-          final parking = parkings.value[index];
-          return ListTile(
-            title: Text(parking.name),
-            subtitle:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('${parking.latLng.latitude}, ${parking.latLng.longitude}'),
-              Text('Congestion: ${parking.congestion}'),
-              Text('Difficulty: ${parking.difficulty}'),
-            ]),
-            onTap: () {
-              Navigator.of(context).pushNamed("/navi", arguments: parking);
+        appBar: AppBar(
+          backgroundColor: Colors.green,
+          title: Text('Parking Ranking', style: TextStyle(color: Colors.white)),
+        ),
+        body: Container(
+          color: Colors.yellow,
+          child: ListView.builder(
+            itemCount: parkings.value.length,
+            itemBuilder: (context, index) {
+              final parking = parkings.value[index];
+
+              return Column(
+                children: [
+                  ListTile(
+                    title: Text(parking.name,
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold)),
+                    subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              '${parking.latLng.latitude}, ${parking.latLng.longitude}',
+                              style: TextStyle(color: Colors.black)),
+                          Text('Congestion: ${parking.congestion}',
+                              style: TextStyle(color: Colors.black)),
+                          Text('Near Roads Width: ${parking.nearWidth}'),
+                          Text('Difficulty: ${parking.difficulty}'),
+                        ]),
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushNamed("/navi", arguments: parking);
+                    },
+                  ),
+                  Divider(height: 2, thickness: 1, color: Colors.black)
+                ],
+              );
             },
-          );
-        },
-      ),
-    );
+          ),
+        ));
   }
 }

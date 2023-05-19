@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import "parking.dart";
 import 'loginPage.dart';
+import 'package:crypto/crypto.dart';
 
 import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
 import '../model/ml.dart';
@@ -146,10 +147,10 @@ class _GoogleMapWidget extends HookWidget {
         }
       },
       autofocus: true, //TextFieldが表示されるときにフォーカスする（キーボードを表示する）
-      cursorColor: Colors.white, //カーソルの色
+      cursorColor: Colors.black, //カーソルの色
       style: const TextStyle(
         //テキストのスタイル
-        color: Colors.white,
+        color: Colors.black,
         fontSize: 20,
       ),
       textInputAction: TextInputAction.search, //キーボードのアクションボタンを指定
@@ -157,14 +158,14 @@ class _GoogleMapWidget extends HookWidget {
         //TextFiledのスタイル
         enabledBorder: UnderlineInputBorder(
             //デフォルトのTextFieldの枠線
-            borderSide: BorderSide(color: Colors.white)),
+            borderSide: BorderSide(color: Colors.black)),
         focusedBorder: UnderlineInputBorder(
             //TextFieldにフォーカス時の枠線
-            borderSide: BorderSide(color: Colors.white)),
+            borderSide: BorderSide(color: Colors.black)),
         hintText: 'Search', //何も入力してないときに表示されるテキスト
         hintStyle: TextStyle(
           //hintTextのスタイル
-          color: Colors.white60,
+          color: Color.fromARGB(255, 215, 213, 213),
           fontSize: 20,
         ),
       ),
@@ -290,6 +291,68 @@ class _GoogleMapWidget extends HookWidget {
         parking.congestion = congestion;
       } else {
         throw Exception("Failed to get data from API.");
+      }
+    }
+  }
+
+  //parkingsを受け取り
+  Future<void> _getNearWidth(ValueNotifier<List<Parking>> parkings) async {
+    //変数定義
+    const String REQUEST_CODE = "i3uWChjt4PVAiv7VAyAS";
+    const CID = "p2300410";
+    const NAVITIME_HOST = "trial.api-service.navitime.biz";
+    const QUERY = "v1/shape_car";
+    //環境変数の読み込み
+    await dotenv.load(fileName: '.env');
+    final signature_key = utf8.encode(dotenv.get('NAVITIME_API_KEY'));
+    //署名の発行
+    String signature = Hmac(sha256, signature_key)
+        .convert(utf8.encode(REQUEST_CODE))
+        .toString();
+    //  final Uri uri = Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
+    //final response = await http.get(uri);
+    for (Parking parking in parkings.value) {
+      final String origin =
+          "${parking.latLng.latitude},${parking.latLng.longitude}";
+      //駐車場の位置から少し離れた場所を目的地に設定
+      final String destination =
+          "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
+      final dio = Dio();
+      //String url = "https://$NAVITIME_HOST/$CID/$QUERY";
+      final url =
+          'https://$NAVITIME_HOST/$CID/$QUERY?start=$origin&goal=$destination&request_code=$REQUEST_CODE&signature=$signature';
+
+      //final response = await http.get(uri);
+      /*
+        Map<String, String> params = {
+          "start": origin,
+          "goal": destination,
+          "request_code": dotenv.get("NAVITIME_API_KEY"),
+          "signature": signature
+        };
+        final Uri uri = Uri.https(NAVITIME_HOST,"/$CID/$QUERY",params);*/
+      try {
+        final response = await dio.get(url);
+        //final response = await http.get(Uri.parse(url), headers: params);
+        if (response.statusCode == 200) {
+          final features = response.data["features"] as List<dynamic>;
+          //List features = jsonDecode(response.data)["features"];
+          if (features.isNotEmpty) {
+            List nearWidthList = [];
+            String nearWidth = "";
+            for (var feature in features) {
+              if (feature["properties"].containsKey("road_width_grade")) {
+                nearWidth = (feature["properties"]["road_width_grade"]);
+                break;
+              }
+            }
+            parking.nearWidth = nearWidth;
+          }
+        } else {
+          throw Exception("Failed to load data from server.");
+        }
+      } catch (error) {
+        throw Exception(error.toString());
       }
     }
   }
@@ -451,12 +514,13 @@ class _GoogleMapWidget extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 215, 213, 213),
         leading: IconButton(
             onPressed: () {
               Navigator.of(context).pushNamed("/ranking", arguments: parkings);
               // ランキング表示
             },
-            icon: Icon(Icons.assignment)),
+            icon: Icon(Icons.assignment, color: Colors.black)),
         title: !isSearch.value
             ? Center(
                 child: IconButton(
@@ -464,7 +528,7 @@ class _GoogleMapWidget extends HookWidget {
                       isSearch.value = true;
                       predictions.value = [];
                     },
-                    icon: Icon(Icons.search)),
+                    icon: Icon(Icons.search, color: Colors.black)),
               )
             : _searchTextField(hasPositon, predictions),
         actions: !isSearch.value
@@ -474,12 +538,12 @@ class _GoogleMapWidget extends HookWidget {
                         onPressed: () {
                           Navigator.of(context).pushNamed("/login");
                         },
-                        icon: Icon(Icons.login))
+                        icon: Icon(Icons.login, color: Colors.black))
                     : IconButton(
                         onPressed: () {
                           Navigator.of(context).pushNamed("/mypage");
                         },
-                        icon: Icon(Icons.person))
+                        icon: Icon(Icons.person, color: Colors.black))
               ]
             : [
                 IconButton(
@@ -495,10 +559,14 @@ class _GoogleMapWidget extends HookWidget {
           Container(
             alignment: Alignment.bottomCenter,
             child: ElevatedButton(
-                child: Text("ここで駐車場検索！\n 緯度 : " +
-                    position.value.latitude.toString() +
-                    "\n 経度 : " +
-                    position.value.longitude.toString()),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+                child: Text(
+                  "Let's Search!\n 緯度 : " +
+                      position.value.latitude.toString() +
+                      "\n 経度 : " +
+                      position.value.longitude.toString(),
+                  style: TextStyle(color: Colors.black),
+                ),
                 onPressed: () async {
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
@@ -511,25 +579,30 @@ class _GoogleMapWidget extends HookWidget {
 
                   searching.value = false;
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
+                  await _getNearWidth(parkings);
                   //駐車場取得メッセージの設定
                   var parkingMessage = "";
 
                   if (parkings.value.length > 0) {
-                    parkingMessage = "検索成功！";
+                    parkingMessage = "Success！";
                     _setParkingLocation(context, markers, parkings);
                   } else {
                     parkingMessage = "駐車場はありません";
                   }
-
+                  ;
                   //ダイアログの表示
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
+                        backgroundColor: Color.fromARGB(255, 215, 213, 213),
                         title: Text(parkingMessage),
                         actions: [
                           TextButton(
-                            child: Text("OK"),
+                            style: TextButton.styleFrom(
+                                backgroundColor: Colors.yellow),
+                            child: Text("OK",
+                                style: TextStyle(color: Colors.black)),
                             onPressed: () => Navigator.pop(context),
                           ),
                         ],

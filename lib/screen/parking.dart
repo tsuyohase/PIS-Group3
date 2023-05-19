@@ -8,7 +8,7 @@ class Parking {
   double congestion = 0;
   double difficulty = 0;
   int capacity = Random().nextInt(30); // あとでちゃんとデータをセットしないとだめ
-  int width = Random().nextInt(3);
+  int nearWidth = 0;
   int occupancy = Random().nextInt(2);
   int rank = 0;
 }
