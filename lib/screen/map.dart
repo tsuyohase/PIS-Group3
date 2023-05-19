@@ -346,7 +346,13 @@ class _GoogleMapWidget extends HookWidget {
                 break;
               }
             }
-            parking.nearWidth = nearWidth;
+            int width = 0;
+            if (nearWidth == 'broad') {
+              width = 2;
+            } else if (nearWidth == 'narrow') {
+              width = 1;
+            }
+            parking.nearWidth = width;
           }
         } else {
           throw Exception("Failed to load data from server.");
@@ -365,7 +371,7 @@ class _GoogleMapWidget extends HookWidget {
         parking.capacity.toDouble(),
         parking.occupancy.toDouble(),
         parking.congestion,
-        parking.width.toDouble()
+        parking.nearWidth.toDouble()
       ];
       List<double> input = MachineLearning.standardScaler(parkingData);
       List<List<dynamic>> output =
@@ -577,9 +583,11 @@ class _GoogleMapWidget extends HookWidget {
                   await _getCongestion(parkings);
                   await _getDifficulty(parkings);
 
-                  searching.value = false;
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
                   await _getNearWidth(parkings);
+
+                  searching.value = false;
+
                   //駐車場取得メッセージの設定
                   var parkingMessage = "";
 
