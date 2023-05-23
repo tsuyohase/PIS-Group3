@@ -228,7 +228,7 @@ class _GoogleMapWidget extends HookWidget {
 
     await mapController.animateCamera(
       CameraUpdate.newLatLngZoom(
-          LatLng(position.value.latitude, position.value.longitude), 15),
+          LatLng(position.value.latitude, position.value.longitude), 14),
     );
   }
 
@@ -261,42 +261,41 @@ class _GoogleMapWidget extends HookWidget {
   }
 
   //Parkingを受け取りcongestionに値を追加
-  Future<void> _getCongestion(ValueNotifier<List<Parking>> parkings) async {
-    for (Parking parking in parkings.value) {
-      final String origin =
-          "${parking.latLng.latitude},${parking.latLng.longitude}";
-      //駐車場の位置から少し離れた場所を目的地に設定
-      final String destination =
-          "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
-      //リクエストパラメータの設定
-      final Map<String, String> params = {
-        "origin": origin,
-        "destination": destination,
-        "departure_time": "now",
-        "key": dotenv.get("GOOGLE_MAP_API_KEY"),
-      };
-      //目的地までの移動時間を調べる
-      final Uri uri =
-          Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
-      final response = await http.get(uri);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        //混雑度を考慮した移動時間
-        final durationInTraffic =
-            data['routes'][0]['legs'][0]['duration_in_traffic']['value'];
-        //混雑度を考慮しない移動時間
-        final duration = data['routes'][0]['legs'][0]['duration']['value'];
-        //移動時間の比をcongestionとしてparkingに追加
-        final congestion = durationInTraffic / duration;
-        parking.congestion = congestion;
-      } else {
-        throw Exception("Failed to get data from API.");
-      }
+  Future<void> _getCongestion(Parking parking) async {
+    await dotenv.load(fileName: '.env');
+    final String origin =
+        "${parking.latLng.latitude},${parking.latLng.longitude}";
+    //駐車場の位置から少し離れた場所を目的地に設定
+    final String destination =
+        "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
+    //リクエストパラメータの設定
+    final Map<String, String> params = {
+      "origin": origin,
+      "destination": destination,
+      "departure_time": "now",
+      "key": dotenv.get("GOOGLE_MAP_API_KEY"),
+    };
+    //目的地までの移動時間を調べる
+    final Uri uri =
+        Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
+    final response = await http.get(uri);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      //混雑度を考慮した移動時間
+      final durationInTraffic =
+          data['routes'][0]['legs'][0]['duration_in_traffic']['value'];
+      //混雑度を考慮しない移動時間
+      final duration = data['routes'][0]['legs'][0]['duration']['value'];
+      //移動時間の比をcongestionとしてparkingに追加
+      final congestion = durationInTraffic / duration;
+      parking.congestion = congestion;
+    } else {
+      throw Exception("Failed to get data from API.");
     }
   }
 
   //parkingsを受け取り
-  Future<void> _getNearWidth(ValueNotifier<List<Parking>> parkings) async {
+  Future<void> _getNearWidth(Parking parking) async {
     //変数定義
     const String REQUEST_CODE = "i3uWChjt4PVAiv7VAyAS";
     const CID = "p2300410";
@@ -311,19 +310,18 @@ class _GoogleMapWidget extends HookWidget {
         .toString();
     //  final Uri uri = Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
     //final response = await http.get(uri);
-    for (Parking parking in parkings.value) {
-      final String origin =
-          "${parking.latLng.latitude},${parking.latLng.longitude}";
-      //駐車場の位置から少し離れた場所を目的地に設定
-      final String destination =
-          "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
-      final dio = Dio();
-      //String url = "https://$NAVITIME_HOST/$CID/$QUERY";
-      final url =
-          'https://$NAVITIME_HOST/$CID/$QUERY?start=$origin&goal=$destination&request_code=$REQUEST_CODE&signature=$signature';
+    final String origin =
+        "${parking.latLng.latitude},${parking.latLng.longitude}";
+    //駐車場の位置から少し離れた場所を目的地に設定
+    final String destination =
+        "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
+    final dio = Dio();
+    //String url = "https://$NAVITIME_HOST/$CID/$QUERY";
+    final url =
+        'https://$NAVITIME_HOST/$CID/$QUERY?start=$origin&goal=$destination&request_code=$REQUEST_CODE&signature=$signature';
 
-      //final response = await http.get(uri);
-      /*
+    //final response = await http.get(uri);
+    /*
         Map<String, String> params = {
           "start": origin,
           "goal": destination,
@@ -331,54 +329,71 @@ class _GoogleMapWidget extends HookWidget {
           "signature": signature
         };
         final Uri uri = Uri.https(NAVITIME_HOST,"/$CID/$QUERY",params);*/
-      try {
-        final response = await dio.get(url);
-        //final response = await http.get(Uri.parse(url), headers: params);
-        if (response.statusCode == 200) {
-          final features = response.data["features"] as List<dynamic>;
-          //List features = jsonDecode(response.data)["features"];
-          if (features.isNotEmpty) {
-            List nearWidthList = [];
-            String nearWidth = "";
-            for (var feature in features) {
-              if (feature["properties"].containsKey("road_width_grade")) {
-                nearWidth = (feature["properties"]["road_width_grade"]);
-                break;
-              }
+    try {
+      final response = await dio.get(url);
+      //final response = await http.get(Uri.parse(url), headers: params);
+      if (response.statusCode == 200) {
+        final features = response.data["features"] as List<dynamic>;
+        //List features = jsonDecode(response.data)["features"];
+        if (features.isNotEmpty) {
+          List nearWidthList = [];
+          String nearWidth = "";
+          for (var feature in features) {
+            if (feature["properties"].containsKey("road_width_grade")) {
+              nearWidth = (feature["properties"]["road_width_grade"]);
+              break;
             }
-            int width = 0;
-            if (nearWidth == 'broad') {
-              width = 2;
-            } else if (nearWidth == 'narrow') {
-              width = 1;
-            }
-            parking.nearWidth = width;
           }
-        } else {
-          throw Exception("Failed to load data from server.");
+          int width = 0;
+          if (nearWidth == 'broad') {
+            width = 2;
+          } else if (nearWidth == 'narrow') {
+            width = 1;
+          }
+          parking.nearWidth = width;
         }
-      } catch (error) {
-        throw Exception(error.toString());
+      } else {
+        throw Exception("Failed to load data from server.");
       }
+    } catch (error) {
+      throw Exception(error.toString());
     }
   }
 
-  //Parkingを受け取りcongestionに値を追加
-  Future<void> _getDifficulty(ValueNotifier<List<Parking>> parkings) async {
-    cm = await MachineLearning.getModel();
+  void _getParkingsInfo(ValueNotifier<List<Parking>> parkings) async {
+    List<Future<void>> futureList = [];
     for (Parking parking in parkings.value) {
-      List<double> parkingData = [
-        parking.capacity.toDouble(),
-        parking.occupancy.toDouble(),
-        parking.congestion,
-        parking.nearWidth.toDouble()
-      ];
-      List<double> input = MachineLearning.standardScaler(parkingData);
-      List<List<dynamic>> output =
-          await MachineLearning.runProcessResult(cm, input)
-              as List<List<dynamic>>;
-      parking.difficulty = output[0][1];
+      futureList.add(_getCongestion(parking));
+      futureList.add(_getNearWidth(parking));
     }
+    await Future.wait(futureList);
+  }
+
+  //Parkingを受け取りcongestionに値を追加
+  Future<void> _getMLResult(Parking parking) async {
+    List<double> parkingData = [
+      parking.capacity.toDouble(),
+      parking.occupancy.toDouble(),
+      parking.congestion,
+      parking.nearWidth.toDouble()
+    ];
+    List<double> input = MachineLearning.standardScaler(parkingData);
+    List<List<dynamic>> output =
+        await MachineLearning.runProcessResult(cm, input)
+            as List<List<dynamic>>;
+    parking.difficulty = output[0][1];
+  }
+
+  void _getDifficulty(ValueNotifier<List<Parking>> parkings) async {
+    cm = await MachineLearning.getModel();
+
+    List<Future<void>> futureList = [];
+    for (Parking parking in parkings.value) {
+      futureList.add(_getMLResult(parking));
+    }
+
+    await Future.wait(futureList);
+
     parkings.value.sort((a, b) => b.difficulty.compareTo(a.difficulty));
     for (int i = 0; i < parkings.value.length; i++) {
       parkings.value[i].rank = i;
@@ -603,11 +618,14 @@ class _GoogleMapWidget extends HookWidget {
                     position.value = cp;
 
                     await _getParking(cp, markers, parkings);
-                    await _getCongestion(parkings);
-                    await _getDifficulty(parkings);
+                    // await _getCongestion(parkings);
+                    debugPrint(parkings.value[1].congestion.toString());
+                    _getParkingsInfo(parkings);
+                    debugPrint(parkings.value[1].congestion.toString());
+                    _getDifficulty(parkings);
 
                     // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
-                    await _getNearWidth(parkings);
+                    // await _getNearWidth(parkings);
 
                     searching.value = false;
 
