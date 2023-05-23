@@ -105,6 +105,10 @@ class _NaviPageState extends State<NaviPage> {
     return GoogleMap(
         mapType: MapType.normal,
         onMapCreated: _mapController.complete,
+        // 端末の位置情報を使用する。
+        myLocationEnabled: true,
+        // 端末の位置情報を地図の中心に表示するボタンを表示する。
+        myLocationButtonEnabled: true,
         initialCameraPosition: CameraPosition(
             target:
                 LatLng(_initialPosition.latitude, _initialPosition.longitude),
@@ -140,24 +144,28 @@ class _NaviPageState extends State<NaviPage> {
   Future<void> _animateCamera() async {
     final mapController = await _mapController.future;
 
-    double east = Math.min(widget.parking.latLng.longitude, cp.longitude);
-    double west = Math.max(widget.parking.latLng.longitude, cp.longitude);
+    double east = Math.max(widget.parking.latLng.longitude, cp.longitude);
+    double west = Math.min(widget.parking.latLng.longitude, cp.longitude);
     double south = Math.min(widget.parking.latLng.latitude, cp.latitude);
     double north = Math.max(widget.parking.latLng.latitude, cp.latitude);
 
-    await mapController.animateCamera(CameraUpdate.newLatLngZoom(
-        LatLng((widget.parking.latLng.latitude + cp.latitude) / 2,
-            (widget.parking.latLng.longitude + cp.longitude) / 2),
-        15));
+    await mapController.animateCamera(CameraUpdate.newLatLngBounds(
+      LatLngBounds(southwest: LatLng(south,west), northeast: LatLng(north,east)),
+        10));
   }
+  
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-          appBar: AppBar(
-            title: Text('Navi'),
-          ),
+    return Scaffold(
+        appBar: AppBar(
+        automaticallyImplyLeading: true,
+        backgroundColor: Color.fromARGB(255, 215, 213, 213),
+        title: Container(
+          alignment: Alignment.center,
+          child: const Text('Navi Page', style: TextStyle(color: Colors.white)),
+      )
+      ),
           body: Stack(children: [
             _createMap(),
             Container(
@@ -166,7 +174,7 @@ class _NaviPageState extends State<NaviPage> {
                   child: Text("ここに決定！(Google mapとかに飛ばす？)"),
                   onPressed: () async {}),
             ),
-          ])),
+          ]),
     );
   }
 }
