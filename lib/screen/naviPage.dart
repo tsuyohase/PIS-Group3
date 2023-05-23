@@ -167,8 +167,11 @@ class _NaviPageState extends State<NaviPage> {
           Container(
             alignment: Alignment.bottomCenter,
             child: ElevatedButton(
-                child: Text("ここに決定！(Google mapとかに飛ばす？)"),
-                onPressed: () async {}),
+                child: Text("案内終了"),
+                onPressed: () async {
+                  Navigator.of(context)
+                      .pushNamed("/feedbackpage", arguments: widget.parking);
+                }),
           ),
         ]));
   }
