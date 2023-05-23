@@ -97,7 +97,7 @@ class _NaviPageState extends State<NaviPage> {
           width: 5,
           points: _points));
     });
-    await _animateCamera();
+    Future.delayed(const Duration(seconds: 1), () => _animateCamera());
   }
 
   // マップの作成
@@ -105,6 +105,10 @@ class _NaviPageState extends State<NaviPage> {
     return GoogleMap(
         mapType: MapType.normal,
         onMapCreated: _mapController.complete,
+        // 端末の位置情報を使用する。
+        myLocationEnabled: true,
+        // 端末の位置情報を地図の中心に表示するボタンを表示する。
+        myLocationButtonEnabled: true,
         initialCameraPosition: CameraPosition(
             target:
                 LatLng(_initialPosition.latitude, _initialPosition.longitude),
@@ -140,34 +144,32 @@ class _NaviPageState extends State<NaviPage> {
   Future<void> _animateCamera() async {
     final mapController = await _mapController.future;
 
-    double east = Math.min(widget.parking.latLng.longitude, cp.longitude);
-    double west = Math.max(widget.parking.latLng.longitude, cp.longitude);
+    double east = Math.max(widget.parking.latLng.longitude, cp.longitude);
+    double west = Math.min(widget.parking.latLng.longitude, cp.longitude);
     double south = Math.min(widget.parking.latLng.latitude, cp.latitude);
     double north = Math.max(widget.parking.latLng.latitude, cp.latitude);
 
-    await mapController.animateCamera(CameraUpdate.newLatLngZoom(
-        LatLng((widget.parking.latLng.latitude + cp.latitude) / 2,
-            (widget.parking.latLng.longitude + cp.longitude) / 2),
-        15));
+    await mapController.animateCamera(CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+            southwest: LatLng(south, west), northeast: LatLng(north, east)),
+        10));
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.green,
-            title: Text('Navi', style: TextStyle(color: Colors.white)),
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.green,
+          title: Text('Navi', style: TextStyle(color: Colors.white)),
+        ),
+        body: Stack(children: [
+          _createMap(),
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: ElevatedButton(
+                child: Text("ここに決定！(Google mapとかに飛ばす？)"),
+                onPressed: () async {}),
           ),
-          body: Stack(children: [
-            _createMap(),
-            Container(
-              alignment: Alignment.bottomCenter,
-              child: ElevatedButton(
-                  child: Text("ここに決定！(Google mapとかに飛ばす？)"),
-                  onPressed: () async {}),
-            ),
-          ])),
-    );
+        ]));
   }
 }
