@@ -12,6 +12,9 @@ import "parking.dart";
 import 'loginPage.dart';
 import 'package:crypto/crypto.dart';
 
+import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
+import '../model/ml.dart';
+
 class GoogleMapWidget extends StatelessWidget {
   const GoogleMapWidget({super.key});
 
@@ -32,6 +35,8 @@ class _GoogleMapWidget extends HookWidget {
   );
 
   final Completer<GoogleMapController> _mapController = Completer();
+
+  late FirebaseCustomModel cm;
 
   /// デバイスの現在位置を決定する。
   /// 位置情報サービスが有効でない場合、または許可されていない場合。
@@ -341,7 +346,13 @@ class _GoogleMapWidget extends HookWidget {
                 break;
               }
             }
-            parking.nearWidth = nearWidth;
+            int width = 0;
+            if (nearWidth == 'broad') {
+              width = 2;
+            } else if (nearWidth == 'narrow') {
+              width = 1;
+            }
+            parking.nearWidth = width;
           }
         } else {
           throw Exception("Failed to load data from server.");
@@ -352,24 +363,56 @@ class _GoogleMapWidget extends HookWidget {
     }
   }
 
+  //Parkingを受け取りcongestionに値を追加
+  Future<void> _getDifficulty(ValueNotifier<List<Parking>> parkings) async {
+    cm = await MachineLearning.getModel();
+    for (Parking parking in parkings.value) {
+      List<double> parkingData = [
+        parking.capacity.toDouble(),
+        parking.occupancy.toDouble(),
+        parking.congestion,
+        parking.nearWidth.toDouble()
+      ];
+      List<double> input = MachineLearning.standardScaler(parkingData);
+      List<List<dynamic>> output =
+          await MachineLearning.runProcessResult(cm, input)
+              as List<List<dynamic>>;
+      parking.difficulty = output[0][1];
+    }
+    parkings.value.sort((a, b) => b.difficulty.compareTo(a.difficulty));
+    for (int i = 0; i < parkings.value.length; i++) {
+      parkings.value[i].rank = i;
+    }
+  }
+
   //parkings中の駐車場座標にマーカーを表示
   Future<void> _setParkingLocation(
+      BuildContext context,
       ValueNotifier<Map<String, Marker>> markers,
-      ValueNotifier<List<Parking>> parkings,
-      ValueNotifier<bool> showDetail,
-      ValueNotifier<Parking> showParking) async {
+      ValueNotifier<List<Parking>> parkings) async {
     final List<Parking> parkingList = parkings.value;
     final Map<String, Marker> markerMap = {};
 
     for (int i = 0; i < parkingList.length; i++) {
       final Parking parking = parkingList[i];
+      BitmapDescriptor icon = BitmapDescriptor.defaultMarker;
+      if (i == 0) {
+        icon =
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+      } else if (i == 1) {
+        icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
+      } else if (i == 2) {
+        icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+      }
       final Marker marker = Marker(
           markerId: MarkerId('parking${i + 1}'),
           position: parking.latLng,
           onTap: () {
-            showParking.value = parking;
-            showDetail.value = true;
+            // showParking.value = parking;
+            // showDetail.value = true;
+            _showParkingDetail(context, parking);
           },
+          icon: icon,
           //markerをタップすると駐車場名が表示
           infoWindow: InfoWindow(title: parking.name));
       markerMap['parking${i + 1}'] = marker;
@@ -379,33 +422,73 @@ class _GoogleMapWidget extends HookWidget {
     markers.value = markerMap;
   }
 
-  Widget _parkingDetail(
-      BuildContext context, ValueNotifier<Parking> showParking) {
-    return SimpleDialog(
-      alignment: Alignment.topCenter,
-      title: Text(showParking.value.name),
-      children: <Widget>[
-        SimpleDialogOption(
-          child: Text(
-              "latitude : " + showParking.value.latLng.latitude.toString()),
-        ),
-        SimpleDialogOption(
-          child: Text(
-              "longitude : " + showParking.value.latLng.longitude.toString()),
-        ),
-        const SimpleDialogOption(
-          child: Text("駐車難易度"),
-        ),
-        ElevatedButton(
-          child: const Text("ここに決定"),
-          onPressed: () {
-            Navigator.of(context)
-                .pushNamed("/navi", arguments: showParking.value);
-          },
-        ),
-      ],
+  void _showParkingDetail(BuildContext context, Parking parking) {
+    showDialog(
+      barrierColor: Colors.black.withOpacity(0),
+      barrierDismissible: true,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          alignment: Alignment.topCenter,
+          title: Text(parking.name),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            // SimpleDialogOption(
+            //   child: Text("latitude : " + parking.latLng.latitude.toString()),
+            // ),
+            // SimpleDialogOption(
+            //   child: Text("longitude : " + parking.latLng.longitude.toString()),
+            // ),
+            SimpleDialogOption(
+              child: Text("駐車難易度 : " + parking.difficulty.toString()),
+            ),
+            SimpleDialogOption(
+              child: Text("ランキング: " + parking.rank.toString()),
+            ),
+            ElevatedButton(
+              child: const Text("ここに決定"),
+              onPressed: () {
+                Navigator.of(context).pushNamed("/navi", arguments: parking);
+              },
+            ),
+          ]),
+        );
+      },
     );
   }
+
+  // Widget _parkingDetail(
+  //     BuildContext context, ValueNotifier<Parking> showParking) {
+  //   return SimpleDialog(
+  //     alignment: Alignment.topCenter,
+  //     title: Text(showParking.value.name),
+  //     children: <Widget>[
+  //       SimpleDialogOption(
+  //         child: Text(
+  //             "latitude : " + showParking.value.latLng.latitude.toString()),
+  //       ),
+  //       SimpleDialogOption(
+  //         child: Text(
+  //             "longitude : " + showParking.value.latLng.longitude.toString()),
+  //       ),
+  //       SimpleDialogOption(
+  //         child: Text("駐車難易度 : " + showParking.value.difficulty.toString()),
+  //       ),
+  //       SimpleDialogOption(
+  //         child: Text("ランキング: " + showParking.value.rank.toString()),
+  //       ),
+  //       ElevatedButton(
+  //         child: const Text("ここに決定"),
+  //         onPressed: () {
+  //           Navigator.of(context)
+  //               .pushNamed("/navi", arguments: showParking.value);
+  //         },
+  //       ),
+  //       FloatingActionButton(onPressed: () {
+  //         Navigator.of(context).pop();
+  //       })
+  //     ],
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -422,9 +505,10 @@ class _GoogleMapWidget extends HookWidget {
     final hasPositon = useState<bool>(false);
     final isSearch = useState<bool>(false);
     final parkings = useState<List<Parking>>([]);
-    final showDetail = useState<bool>(false);
-    final showParking =
-        useState<Parking>(Parking(latLng: LatLng(0, 0), name: "initial"));
+    final searching = useState<bool>(false);
+    // final showDetail = useState<bool>(false);
+    // final showParking =
+    //     useState<Parking>(Parking(latLng: LatLng(0, 0), name: "initial"));
 
     // 一度だけ実行(うまく動いていない)
     useEffect(() {
@@ -495,19 +579,27 @@ class _GoogleMapWidget extends HookWidget {
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
+                  searching.value = true;
+
                   await _getParking(position, markers, parkings);
                   await _getCongestion(parkings);
+                  await _getDifficulty(parkings);
+
                   // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
                   await _getNearWidth(parkings);
+
+                  searching.value = false;
+
                   //駐車場取得メッセージの設定
                   var parkingMessage = "";
+
                   if (parkings.value.length > 0) {
-                    parkingMessage = "Success!";
-                    _setParkingLocation(
-                        markers, parkings, showDetail, showParking);
+                    parkingMessage = "Success！";
+                    _setParkingLocation(context, markers, parkings);
                   } else {
-                    parkingMessage = "Failed...";
-                  };
+                    parkingMessage = "駐車場はありません";
+                  }
+                  ;
                   //ダイアログの表示
                   showDialog(
                     context: context,
@@ -517,8 +609,10 @@ class _GoogleMapWidget extends HookWidget {
                         title: Text(parkingMessage),
                         actions: [
                           TextButton(
-                            style: TextButton.styleFrom(backgroundColor: Colors.yellow),
-                            child: Text("OK", style: TextStyle(color: Colors.black)),
+                            style: TextButton.styleFrom(
+                                backgroundColor: Colors.yellow),
+                            child: Text("OK",
+                                style: TextStyle(color: Colors.black)),
                             onPressed: () => Navigator.pop(context),
                           ),
                         ],
@@ -530,7 +624,12 @@ class _GoogleMapWidget extends HookWidget {
           ),
           if (hasPositon.value)
             _searchListView(position, hasPositon, predictions, markers),
-          if (showDetail.value) _parkingDetail(context, showParking),
+          if (searching.value)
+            Center(
+                child: CircularProgressIndicator(
+              strokeWidth: 4,
+            )),
+          // if (showDetail.value) _parkingDetail(context, showParking),
         ],
       ),
     );

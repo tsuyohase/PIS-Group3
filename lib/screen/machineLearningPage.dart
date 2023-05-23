@@ -63,7 +63,7 @@ class MachineLearning {
   static Future<FirebaseCustomModel> getModel() async {
     FirebaseCustomModel customModel =
         await FirebaseModelDownloader.instance.getModel(
-            "sample",
+            "parking-model",
             FirebaseModelDownloadType.localModel,
             FirebaseModelDownloadConditions(
               iosAllowsCellularAccess: true,
@@ -85,14 +85,14 @@ class MachineLearning {
 
     // if output tensor shape [1,2] and type is float32.
     // Object output = List.filled(1 * 2, 0).reshape([1, 2]);
-    var output = List.filled(1 * 1, 0).reshape([1, 1]);
+    var output = List.filled(1 * 2, 0).reshape([1, 2]);
     interpreter.run([input], output);
     interpreter.close();
     return output;
   }
 
   static getInputData() {
-    Object inputData = [1.00, 2.00, 3.00, 4.00];
+    Object inputData = [0.9, 0.0, 0.0, 1.00];
     return inputData;
   }
 }
