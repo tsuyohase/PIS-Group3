@@ -105,6 +105,10 @@ class _NaviPageState extends State<NaviPage> {
     return GoogleMap(
         mapType: MapType.normal,
         onMapCreated: _mapController.complete,
+        // 端末の位置情報を使用する。
+        myLocationEnabled: true,
+        // 端末の位置情報を地図の中心に表示するボタンを表示する。
+        myLocationButtonEnabled: true,
         initialCameraPosition: CameraPosition(
             target:
                 LatLng(_initialPosition.latitude, _initialPosition.longitude),
