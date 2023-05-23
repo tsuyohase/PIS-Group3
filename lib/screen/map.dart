@@ -564,16 +564,18 @@ class _GoogleMapWidget extends HookWidget {
           _createMap(markers),
           Container(
             alignment: Alignment.bottomCenter,
+            child: SizedBox(
+              height: 50,
             child: ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
-                child: Text(
-                  "Let's Search!\n 緯度 : " +
-                      position.value.latitude.toString() +
-                      "\n 経度 : " +
-                      position.value.longitude.toString(),
-                  style: TextStyle(color: Colors.black),
+                child: Column(
+                  children: [
+                  Text("Let's Search!", style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text("at this point", style: TextStyle(color: Colors.black)),
+                  ///Text("経度 : " + position.value.longitude.toString(), style: TextStyle(color: Colors.black)),
+                  ]
                 ),
-                onPressed: () async {
+                onPressed: () async{
                   isSearch.value = false;
                   // positoin.value.latitudeで緯度取得
                   // postion.value.longitudeで軽度取得できる
@@ -618,6 +620,7 @@ class _GoogleMapWidget extends HookWidget {
                     },
                   );
                 }),
+            ),
           ),
           if (hasPositon.value)
             _searchListView(position, hasPositon, predictions, markers),
