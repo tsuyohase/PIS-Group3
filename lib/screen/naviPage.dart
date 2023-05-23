@@ -97,7 +97,7 @@ class _NaviPageState extends State<NaviPage> {
           width: 5,
           points: _points));
     });
-    await _animateCamera();
+    Future.delayed(const Duration(seconds: 1), () => _animateCamera());
   }
 
   // マップの作成
@@ -150,31 +150,30 @@ class _NaviPageState extends State<NaviPage> {
     double north = Math.max(widget.parking.latLng.latitude, cp.latitude);
 
     await mapController.animateCamera(CameraUpdate.newLatLngBounds(
-      LatLngBounds(southwest: LatLng(south,west), northeast: LatLng(north,east)),
+        LatLngBounds(
+            southwest: LatLng(south, west), northeast: LatLng(north, east)),
         10));
   }
-  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-        automaticallyImplyLeading: true,
-        backgroundColor: Color.fromARGB(255, 215, 213, 213),
-        title: Container(
-          alignment: Alignment.center,
-          child: const Text('Navi Page', style: TextStyle(color: Colors.white)),
-      )
-      ),
-          body: Stack(children: [
-            _createMap(),
-            Container(
-              alignment: Alignment.bottomCenter,
-              child: ElevatedButton(
-                  child: Text("ここに決定！(Google mapとかに飛ばす？)"),
-                  onPressed: () async {}),
-            ),
-          ]),
+      appBar: AppBar(
+          automaticallyImplyLeading: true,
+          backgroundColor: Color.fromARGB(255, 215, 213, 213),
+          title: Container(
+            alignment: Alignment.center,
+            child:
+                const Text('Navi Page', style: TextStyle(color: Colors.white)),
+          )),
+      body: Stack(children: [
+        _createMap(),
+        Container(
+          alignment: Alignment.bottomCenter,
+          child: ElevatedButton(
+              child: Text("ここに決定！(Google mapとかに飛ばす？)"), onPressed: () async {}),
+        ),
+      ]),
     );
   }
 }
