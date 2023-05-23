@@ -234,14 +234,14 @@ class _GoogleMapWidget extends HookWidget {
 
   // 現在値を取得して駐車場のリストを追加する
   Future<void> _getParking(
-      ValueNotifier<LatLng> position,
+      LatLng position,
       ValueNotifier<Map<String, Marker>> markers,
       ValueNotifier<List<Parking>> parkings) async {
     final keyword = "parking";
     final radius = "1500";
 // ここでもAPIキーを使用する。
     String requestUrl =
-        'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${position.value.latitude}%2C${position.value.longitude}&radius=${radius}&language=ja&query=${keyword}&type=parking&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
+        'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${position.latitude}%2C${position.longitude}&radius=${radius}&language=ja&query=${keyword}&type=parking&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
     http.Response? response;
     response = await http.get(Uri.parse(requestUrl));
     final mapController = await _mapController.future;
@@ -456,6 +456,18 @@ class _GoogleMapWidget extends HookWidget {
     );
   }
 
+  Future<LatLng> getCenter() async {
+    final controller = await _mapController.future;
+    LatLngBounds visibleRegion = await controller.getVisibleRegion();
+    LatLng centerLatLng = LatLng(
+      (visibleRegion.northeast.latitude + visibleRegion.southwest.latitude) / 2,
+      (visibleRegion.northeast.longitude + visibleRegion.southwest.longitude) /
+          2,
+    );
+
+    return centerLatLng;
+  }
+
   // Widget _parkingDetail(
   //     BuildContext context, ValueNotifier<Parking> showParking) {
   //   return SimpleDialog(
@@ -566,60 +578,69 @@ class _GoogleMapWidget extends HookWidget {
             alignment: Alignment.bottomCenter,
             child: SizedBox(
               height: 50,
-            child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
-                child: Column(
-                  children: [
-                  Text("Let's Search!", style: TextStyle(color: Colors.black, fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("at this point", style: TextStyle(color: Colors.black)),
-                  ///Text("経度 : " + position.value.longitude.toString(), style: TextStyle(color: Colors.black)),
-                  ]
-                ),
-                onPressed: () async{
-                  isSearch.value = false;
-                  // positoin.value.latitudeで緯度取得
-                  // postion.value.longitudeで軽度取得できる
-                  searching.value = true;
+              child: ElevatedButton(
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+                  child: Column(children: [
+                    Text("Let's Search!",
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold)),
+                    Text("at this point",
+                        style: TextStyle(color: Colors.black)),
 
-                  await _getParking(position, markers, parkings);
-                  await _getCongestion(parkings);
-                  await _getDifficulty(parkings);
+                    ///Text("経度 : " + position.value.longitude.toString(), style: TextStyle(color: Colors.black)),
+                  ]),
+                  onPressed: () async {
+                    isSearch.value = false;
+                    // positoin.value.latitudeで緯度取得
+                    // postion.value.longitudeで軽度取得できる
+                    searching.value = true;
 
-                  // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
-                  await _getNearWidth(parkings);
+                    LatLng cp = await getCenter();
 
-                  searching.value = false;
+                    position.value = cp;
 
-                  //駐車場取得メッセージの設定
-                  var parkingMessage = "";
+                    await _getParking(cp, markers, parkings);
+                    await _getCongestion(parkings);
+                    await _getDifficulty(parkings);
 
-                  if (parkings.value.length > 0) {
-                    parkingMessage = "Success！";
-                    _setParkingLocation(context, markers, parkings);
-                  } else {
-                    parkingMessage = "駐車場はありません";
-                  }
-                  ;
-                  //ダイアログの表示
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        backgroundColor: Color.fromARGB(255, 215, 213, 213),
-                        title: Text(parkingMessage),
-                        actions: [
-                          TextButton(
-                            style: TextButton.styleFrom(
-                                backgroundColor: Colors.yellow),
-                            child: Text("OK",
-                                style: TextStyle(color: Colors.black)),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                }),
+                    // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
+                    await _getNearWidth(parkings);
+
+                    searching.value = false;
+
+                    //駐車場取得メッセージの設定
+                    var parkingMessage = "";
+
+                    if (parkings.value.length > 0) {
+                      parkingMessage = "Success！";
+                      _setParkingLocation(context, markers, parkings);
+                    } else {
+                      parkingMessage = "駐車場はありません";
+                    }
+                    ;
+                    //ダイアログの表示
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          backgroundColor: Color.fromARGB(255, 215, 213, 213),
+                          title: Text(parkingMessage),
+                          actions: [
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  backgroundColor: Colors.yellow),
+                              child: Text("OK",
+                                  style: TextStyle(color: Colors.black)),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }),
             ),
           ),
           if (hasPositon.value)
