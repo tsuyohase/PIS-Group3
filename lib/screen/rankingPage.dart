@@ -48,13 +48,13 @@ class RankingPage extends StatelessWidget {
                           ///    style: TextStyle(color: Colors.black)),
                           ///Text('Near Roads Width: ${parking.nearWidth}'),
                           RatingBar.builder(
+                            initialRating: parking.difficulty * 5, //0から1までの数値を5倍
                             direction: Axis.horizontal,
                             allowHalfRating: true,
                             itemCount: 5,
+                            itemSize: 10, //星のサイズを変更（見ながら微調整）
                             itemBuilder: (context, index) => const Icon(Icons.star, color: Colors.white),
-                            onRatingUpdate: (rating) {
-                              print('${parking.difficulty}');
-                            },
+                            onRatingUpdate: (rating) {}, //星をタップしても何も起こらない
                           ),
                         ]),
                     onTap: () {
