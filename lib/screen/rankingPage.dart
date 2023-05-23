@@ -9,6 +9,9 @@ import "parking.dart";
 
 import 'package:flutter/material.dart';
 
+///評価バー実装のための準備
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+
 class RankingPage extends StatelessWidget {
   final ValueNotifier<List<Parking>> parkings;
   const RankingPage({Key? key, required this.parkings}) : super(key: key);
@@ -21,16 +24,16 @@ class RankingPage extends StatelessWidget {
           title: Text('Parking Ranking', style: TextStyle(color: Colors.white)),
         ),
         body: Container(
-          color: Colors.yellow,
+          color: Color.fromARGB(255, 215, 213, 213),
           child: ListView.builder(
             itemCount: parkings.value.length,
             itemBuilder: (context, index) {
+              int number = index + 1;
               final parking = parkings.value[index];
-
               return Column(
                 children: [
                   ListTile(
-                    title: Text(parking.name,
+                    title: Text('$number.' + parking.name,
                         style: TextStyle(
                             color: Colors.black,
                             fontSize: 20,
@@ -41,10 +44,18 @@ class RankingPage extends StatelessWidget {
                           Text(
                               '${parking.latLng.latitude}, ${parking.latLng.longitude}',
                               style: TextStyle(color: Colors.black)),
-                          Text('Congestion: ${parking.congestion}',
-                              style: TextStyle(color: Colors.black)),
-                          Text('Near Roads Width: ${parking.nearWidth}'),
-                          Text('Difficulty: ${parking.difficulty}'),
+                          ///Text('Congestion: ${parking.congestion}',
+                          ///    style: TextStyle(color: Colors.black)),
+                          ///Text('Near Roads Width: ${parking.nearWidth}'),
+                          RatingBar.builder(
+                            direction: Axis.horizontal,
+                            allowHalfRating: true,
+                            itemCount: 5,
+                            itemBuilder: (context, index) => const Icon(Icons.star, color: Colors.white),
+                            onRatingUpdate: (rating) {
+                              print('${parking.difficulty}');
+                            },
+                          ),
                         ]),
                     onTap: () {
                       Navigator.of(context)

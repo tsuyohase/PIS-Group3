@@ -158,22 +158,18 @@ class _NaviPageState extends State<NaviPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          automaticallyImplyLeading: true,
-          backgroundColor: Color.fromARGB(255, 215, 213, 213),
-          title: Container(
-            alignment: Alignment.center,
-            child:
-                const Text('Navi Page', style: TextStyle(color: Colors.white)),
-          )),
-      body: Stack(children: [
-        _createMap(),
-        Container(
-          alignment: Alignment.bottomCenter,
-          child: ElevatedButton(
-              child: Text("ここに決定！(Google mapとかに飛ばす？)"), onPressed: () async {}),
+        appBar: AppBar(
+          backgroundColor: Colors.green,
+          title: Text('Navi', style: TextStyle(color: Colors.white)),
         ),
-      ]),
-    );
+        body: Stack(children: [
+          _createMap(),
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: ElevatedButton(
+                child: Text("ここに決定！(Google mapとかに飛ばす？)"),
+                onPressed: () async {}),
+          ),
+        ]));
   }
 }

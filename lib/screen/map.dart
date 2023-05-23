@@ -26,6 +26,37 @@ class GoogleMapWidget extends StatelessWidget {
   }
 }
 
+///初心者マークの描画
+class _LeftDiagonalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..lineTo(size.width * 1.0, size.height * 0.3)
+      ..lineTo(size.width * 1.0, size.height * 1.0)
+      ..lineTo(0, size.height * 0.7)
+      ..close();
+  }
+  @override
+  bool shouldReclip(CustomClipper oldclipper) {
+    return true;
+  }
+}
+class _RightDiagonalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip (Size size) {
+    return Path()
+      ..lineTo(0, size.height * 0.3)
+      ..lineTo(size.width * 1.0, 0)
+      ..lineTo(size.width * 1.0, size.height * 0.7)
+      ..lineTo(0, size.height * 1.0)
+      ..close();
+  }
+  @override
+  bool shouldReclip(CustomClipper oldclipper) {
+    return true;
+  }
+}
+
 class _GoogleMapWidget extends HookWidget {
   GooglePlace googlePlace = GooglePlace(dotenv.get("GOOGLE_MAP_API_KEY"));
   // 初期表示位置を渋谷駅に設定
@@ -548,12 +579,42 @@ class _GoogleMapWidget extends HookWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 215, 213, 213),
-        leading: IconButton(
+        leadingWidth: 80,
+        leading: Row (
+         children: [
+        IconButton(
             onPressed: () {
               Navigator.of(context).pushNamed("/ranking", arguments: parkings);
               // ランキング表示
             },
             icon: Icon(Icons.assignment, color: Colors.black)),
+        InkWell(
+            onTap: (){}, //ここにボタンを押した時の指示を記述
+            child: Container(
+              height: 25,
+            child: Row(
+             mainAxisAlignment: MainAxisAlignment.center,
+             children: [
+              ClipPath(
+                clipper: _LeftDiagonalClipper(),
+                child: Container(
+                decoration: BoxDecoration(
+                 color: Colors.yellow),
+                width: 10,)
+              ),
+              ClipPath(
+                clipper: _RightDiagonalClipper(),
+                child: Container(
+                decoration: BoxDecoration(
+                 color: Colors.green),
+                width: 10,)
+                )
+            ]
+          )
+          ),
+        ),
+        ],
+        ),
         title: !isSearch.value
             ? Center(
                 child: IconButton(
