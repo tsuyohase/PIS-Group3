@@ -156,7 +156,8 @@ class _NaviPageState extends State<NaviPage> {
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
-            title: Text('Navi'),
+            backgroundColor: Colors.green,
+            title: Text('Navi', style: TextStyle(color: Colors.white)),
           ),
           body: Stack(children: [
             _createMap(),
