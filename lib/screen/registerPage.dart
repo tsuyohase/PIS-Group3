@@ -45,10 +45,10 @@ class _RightDiagonalClipper extends CustomClipper<Path> {
 }
 
 class _RegisterPage extends State<RegisterPage> {
-  var _idController = TextEditingController();
-  var _passController = TextEditingController();
-  late bool skill;
-  String infoText = "アカウント作成に成功すると自動でログインページに移動します。";
+  final _idController = TextEditingController();
+  final _passController = TextEditingController();
+  bool skill = false;
+  String infoText = "アカウント作成後、自動でログインページに移動します";
 
   void _createAccount(String id, String pass, bool skill) async {
     try {
@@ -62,11 +62,8 @@ class _RegisterPage extends State<RegisterPage> {
       await FirebaseFirestore.instance
           .collection('users') // コレクションID
           .doc(user.uid) // ドキュメントID
-          .set({'email': id, 'password': pass, 'skill': skill}); // データ
+          .set({'email': id, 'password': pass, 'skillIsExpert': skill}); // データ
       Navigator.of(context).pushNamed("/login");
-      // setState(() {
-      //   infoText = "登録完了：${user.email}";
-      // });
     }
 
     /// アカウントに失敗した場合のエラー処理
@@ -200,14 +197,14 @@ class _RegisterPage extends State<RegisterPage> {
                                     obscureText: true,
                                   ),
                                 ),
-
+                                const Text('駐車スキル'),
                                 Container(
-                                  margin: const EdgeInsets.only(top: 40),
-                                  padding: const EdgeInsets.only(left: 80),
-                                  width: 300,
+                                  margin: const EdgeInsets.only(top: 20),
+                                  //padding: const EdgeInsets.only(left: 80),
+                                  width: 200,
                                   color: Colors.white,
                                   child: DropdownButton(
-                                    hint: Text('選択してください'),
+                                    hint: Text('駐車スキル'),
                                     items: const [
                                       DropdownMenuItem(
                                         child: Text('初心者'),
@@ -223,6 +220,7 @@ class _RegisterPage extends State<RegisterPage> {
                                         skill = value!;
                                       });
                                     },
+                                    value: skill,
                                   ),
                                 ),
 
@@ -247,6 +245,7 @@ class _RegisterPage extends State<RegisterPage> {
                           ///白線
                           Container(width: 20, color: Colors.white),
                         ])),
+                // エラー文などの表示
                 const SizedBox(height: 8),
                 Text(infoText),
               ]),
