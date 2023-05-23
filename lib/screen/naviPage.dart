@@ -144,16 +144,16 @@ class _NaviPageState extends State<NaviPage> {
   Future<void> _animateCamera() async {
     final mapController = await _mapController.future;
 
-    double east = Math.min(widget.parking.latLng.longitude, cp.longitude);
-    double west = Math.max(widget.parking.latLng.longitude, cp.longitude);
+    double east = Math.max(widget.parking.latLng.longitude, cp.longitude);
+    double west = Math.min(widget.parking.latLng.longitude, cp.longitude);
     double south = Math.min(widget.parking.latLng.latitude, cp.latitude);
     double north = Math.max(widget.parking.latLng.latitude, cp.latitude);
 
-    await mapController.animateCamera(CameraUpdate.newLatLngZoom(
-        LatLng((widget.parking.latLng.latitude + cp.latitude) / 2,
-            (widget.parking.latLng.longitude + cp.longitude) / 2),
-        15));
+    await mapController.animateCamera(CameraUpdate.newLatLngBounds(
+      LatLngBounds(southwest: LatLng(south,west), northeast: LatLng(north,east)),
+        10));
   }
+  
 
   @override
   Widget build(BuildContext context) {
