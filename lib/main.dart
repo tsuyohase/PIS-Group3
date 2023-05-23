@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:parking_app/screen/feedbackPage.dart';
 import 'package:parking_app/screen/myPage.dart';
 import 'package:parking_app/screen/navitimePage.dart';
 import 'firebase_options.dart';
@@ -54,6 +55,8 @@ class MyApp extends ConsumerWidget {
           '/navi': (BuildContext context) => new NaviPage(
               parking: ModalRoute.of(context)!.settings.arguments as Parking),
           '/mlpage': (BuildContext context) => new MachineLearningPage(),
+          '/feedbackpage': (BuildContext context) => new FeedbackPage(
+              parking: ModalRoute.of(context)!.settings.arguments as Parking),
         });
   }
 }
