@@ -11,4 +11,5 @@ class Parking {
   int nearWidth = 0;
   int occupancy = Random().nextInt(2);
   int rank = 0;
+  int defaultRank = 0;
 }
