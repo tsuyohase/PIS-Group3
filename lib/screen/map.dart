@@ -430,12 +430,12 @@ class _GoogleMapWidget extends HookWidget {
       futureList.add(_getMLResult(parking));
     }
 
+    await Future.wait(futureList);
+
     parkings.value.sort((a, b) => b.difficulty.compareTo(a.difficulty));
     for (int i = 0; i < parkings.value.length; i++) {
       parkings.value[i].rank = i;
     }
-
-    await Future.wait(futureList);
   }
 
   void _sortParkings(
@@ -613,10 +613,7 @@ class _GoogleMapWidget extends HookWidget {
                 await _setParkingLocation(context, markers, parkings);
               }, //ここにボタンを押した時の指示を記述
               child: skill.value
-                  ? Icon(
-                      Icons.lte_mobiledata,
-                      color: Colors.black87,
-                    )
+                  ? Icon(Icons.room, color: Colors.green)
                   : Container(
                       height: 25,
                       child: Row(
