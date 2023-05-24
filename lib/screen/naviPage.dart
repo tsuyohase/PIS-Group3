@@ -148,11 +148,15 @@ class _NaviPageState extends State<NaviPage> {
     double west = Math.min(widget.parking.latLng.longitude, cp.longitude);
     double south = Math.min(widget.parking.latLng.latitude, cp.latitude);
     double north = Math.max(widget.parking.latLng.latitude, cp.latitude);
-
+    LatLng southwest = LatLng(south, west);
+    LatLng northeast = LatLng(north, east);
     await mapController.animateCamera(CameraUpdate.newLatLngBounds(
         LatLngBounds(
-            southwest: LatLng(south, west), northeast: LatLng(north, east)),
-        10));
+            southwest: LatLng(south, west), northeast: LatLng(north, east)
+            )
+        ,100)//padding
+        );
+   // await mapController.animateCamera(CameraUpdate.zoomOut());
   }
 
   @override
