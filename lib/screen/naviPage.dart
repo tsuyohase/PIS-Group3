@@ -177,6 +177,18 @@ class _NaviPageState extends State<NaviPage> {
                       .pushNamed("/feedbackpage", arguments: widget.parking);
                 }),
           ),
+            Container(
+            alignment: Alignment.topCenter,
+            margin: EdgeInsets.only(bottom: 16.0),
+            child: Text(
+              widget.parking.name,
+              style: TextStyle(
+                color: Colors.black,
+                backgroundColor: Color.fromARGB(255, 215, 213, 213),
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              )
+          )),
         ]));
   }
 }
