@@ -12,4 +12,5 @@ class Parking {
   int occupancy = Random().nextInt(2);
   int rank = 0;
   int defaultRank = 0;
+  double distance = 0; //検索地点からの距離
 }
