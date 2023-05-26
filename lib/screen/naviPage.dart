@@ -198,18 +198,62 @@ class _NaviPageState extends State<NaviPage> {
                       .pushNamed("/feedbackpage", arguments: widget.parking);
                 }),
           ),
-            Container(
-            alignment: Alignment.topCenter,
-            margin: EdgeInsets.only(bottom: 16.0),
+        //経路検索時の駐車場詳細ボタン
+        Container(
+          alignment: Alignment.topCenter,
+          margin: EdgeInsets.only(bottom: 16.0),
+          child: ElevatedButton(
+            //ボタンを押すと詳細が表示
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return   AlertDialog(
+                      alignment: Alignment.topCenter,
+                      title: Text(widget.parking.name),
+                      content: Column(mainAxisSize: MainAxisSize.min, children: [
+                        // SimpleDialogOption(
+                        //   child: Text("latitude : " + parking.latLng.latitude.toString()),
+                        // ),
+                        // SimpleDialogOption(
+                        //   child: Text("longitude : " + parking.latLng.longitude.toString()),
+                        // ),
+                        SimpleDialogOption(
+                          child: Image.network(widget.parking.photoURL),
+                        ),
+                        SimpleDialogOption(
+                          child: Text("駐車難易度 : " + widget.parking.difficulty.toString()),
+                        ),
+                        SimpleDialogOption(
+                          child: Text("ランキング: " + (widget.parking.rank + 1).toString()),
+                        ),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                              backgroundColor: Colors.blue),
+                          child: Text("OK",
+                              style: TextStyle(color: Colors.black)),
+                          onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color.fromARGB(255, 215, 213, 213),
+            ),
             child: Text(
               widget.parking.name,
               style: TextStyle(
                 color: Colors.black,
-                backgroundColor: Color.fromARGB(255, 215, 213, 213),
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-              )
-          )),
+              ),
+            ),
+          ),
+        )
+          ,
         ]));
   }
 }
