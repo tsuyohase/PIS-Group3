@@ -15,6 +15,9 @@ import 'package:crypto/crypto.dart';
 import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
 import '../model/ml.dart';
 
+import 'package:flutter/services.dart';
+import 'dart:typed_data';
+
 class GoogleMapWidget extends StatelessWidget {
   const GoogleMapWidget({super.key});
 
@@ -467,15 +470,20 @@ class _GoogleMapWidget extends HookWidget {
 
     for (int i = 0; i < parkingList.length; i++) {
       final Parking parking = parkingList[i];
-      BitmapDescriptor icon = BitmapDescriptor.defaultMarker;
+      BitmapDescriptor? icon;
       if (i == 0) {
-        icon =
-            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+        final ImageConfiguration config = ImageConfiguration(
+          size: Size(100,50),
+        );
+        final ByteData imageData = await rootBundle.load('assets/images/crown.jpeg');
+        final Uint8List bytes = imageData.buffer.asUint8List();
+        icon = BitmapDescriptor.fromBytes(bytes);
       } else if (i == 1) {
         icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
       } else if (i == 2) {
         icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
       }
+      if (icon != null) {
       final Marker marker = Marker(
           markerId: MarkerId('parking${i + 1}'),
           position: parking.latLng,
@@ -488,6 +496,7 @@ class _GoogleMapWidget extends HookWidget {
           //markerをタップすると駐車場名が表示
           infoWindow: InfoWindow(title: parking.name));
       markerMap['parking${i + 1}'] = marker;
+      }
     }
     //元々保持していたマーカーは削除
     markers.value.clear();
