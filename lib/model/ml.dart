@@ -13,7 +13,7 @@ class MachineLearning {
   static Future<FirebaseCustomModel> getModel() async {
     FirebaseCustomModel customModel =
         await FirebaseModelDownloader.instance.getModel(
-            "parking-model",
+            "parking_model_smote",
             FirebaseModelDownloadType.localModel,
             FirebaseModelDownloadConditions(
               iosAllowsCellularAccess: true,
@@ -41,8 +41,18 @@ class MachineLearning {
   }
 
   static List<double> standardScaler(List<double> input) {
-    final List<double> deviations = [11.1342292, 0.5, 0.5, 0.6137815];
-    final List<double> means = [9.1578947, 0.5, 0.5, 1.7894736];
+    final List<double> deviations = [
+      6.46271209e+02,
+      2.49325350e-01,
+      2.43928150e-01,
+      6.91178951e-01
+    ];
+    final List<double> means = [
+      11.03896104,
+      0.47402597,
+      0.57792208,
+      1.48051948
+    ];
     List<double> result = [];
     for (int i = 0; i < input.length; i++) {
       result.add((input[i] - means[i]) / deviations[i]);

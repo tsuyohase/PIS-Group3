@@ -70,7 +70,7 @@ class RankingPage extends StatelessWidget {
               return Column(
                 children: [
                   ListTile(
-                    title: Text('$number.' + parking.name,
+                    title: Text('$number. ' + parking.name,
                         style: TextStyle(
                             color: Colors.black,
                             fontSize: 20,
@@ -78,21 +78,21 @@ class RankingPage extends StatelessWidget {
                     subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                              '${parking.latLng.latitude}, ${parking.latLng.longitude}',
-                              style: TextStyle(color: Colors.black)),
-                          
+                          // Text(
+                          //     '${parking.latLng.latitude}, ${parking.latLng.longitude}',
+                          //     style: TextStyle(color: Colors.black)),
+
                           ///Text('Congestion: ${parking.congestion}',
                           ///    style: TextStyle(color: Colors.black)),
                           ///Text('Near Roads Width: ${parking.nearWidth}'),
                           StaticRatingBar(
-                           rating: parking.difficulty * 5, // 0から1までの数値を5倍した評価値を指定
-                           size: 20.0, // 星のサイズを指定
-                           color: Colors.white, // 星の色を指定
-                           allowHalfRating: true, // 半分の星を許可する
+                            rating:
+                                parking.difficulty * 5, // 0から1までの数値を5倍した評価値を指定
+                            size: 20.0, // 星のサイズを指定
+                            color: Colors.white, // 星の色を指定
+                            allowHalfRating: true, // 半分の星を許可する
                           ),
-                          Text(
-                              '${parking.distance}km',
+                          Text('${parking.distance}km',
                               style: TextStyle(color: Colors.black))
                         ]),
                     onTap: () {
