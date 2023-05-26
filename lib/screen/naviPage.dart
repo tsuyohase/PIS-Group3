@@ -148,15 +148,36 @@ class _NaviPageState extends State<NaviPage> {
     double west = Math.min(widget.parking.latLng.longitude, cp.longitude);
     double south = Math.min(widget.parking.latLng.latitude, cp.latitude);
     double north = Math.max(widget.parking.latLng.latitude, cp.latitude);
+    // 経路上の一番大きな関数を取得
+    List<double> EWSN = await _locatePolyline(_polyline, east, west, south, north);
+    east = EWSN[0];
+    west = EWSN[1];
+    south = EWSN[2];
+    north = EWSN[3];
     LatLng southwest = LatLng(south, west);
     LatLng northeast = LatLng(north, east);
     await mapController.animateCamera(CameraUpdate.newLatLngBounds(
         LatLngBounds(
             southwest: LatLng(south, west), northeast: LatLng(north, east)
             )
-        ,100)//padding
+        ,50)//padding
         );
    // await mapController.animateCamera(CameraUpdate.zoomOut());
+  }
+
+  // polylineが存在する領域の端を返す関数
+  Future <List<double>> _locatePolyline(Set<Polyline> polylines,
+                                double east,double west, double south, double north)async{
+        for (Polyline polyline in polylines) {
+          for (LatLng point in polyline.points){
+            east = Math.max(east,point.longitude);
+            west = Math.min(west,point.longitude);
+            south = Math.min(south,point.latitude);
+            north = Math.max(north,point.latitude);
+          }
+        }
+      // 4方位をリストで返す
+      return [east,west,south,north];
   }
 
   @override
