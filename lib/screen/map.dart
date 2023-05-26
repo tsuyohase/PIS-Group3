@@ -225,7 +225,10 @@ class _GoogleMapWidget extends HookWidget {
             title: Text(predictions.value[index].description
                 .toString()), // 検索結果を表示。descriptionを指定すると場所名が表示されます。
             onTap: () async {
-// 検索した住所を押した時の処理を記載
+              // 検索した住所を押した時の処理を記載
+
+              markers.value.clear();
+
               _getTargetLatLng(
                   position, predictions.value[index].placeId, markers);
 
@@ -239,8 +242,7 @@ class _GoogleMapWidget extends HookWidget {
     );
   }
 
-  Future<void> _setCurrentLocation(ValueNotifier<LatLng> position,
-      ValueNotifier<Map<String, Marker>> markers) async {
+  Future<void> _setCurrentLocation(ValueNotifier<LatLng> position) async {
     final currentPosition = await _determinePosition();
 
     const decimalPoint = 3;
@@ -249,13 +251,6 @@ class _GoogleMapWidget extends HookWidget {
             (currentPosition.latitude).toStringAsFixed(decimalPoint) &&
         (position.value.longitude).toStringAsFixed(decimalPoint) !=
             (currentPosition.longitude).toStringAsFixed(decimalPoint)) {
-      // 現在地座標にMarkerを立てる
-      final marker = Marker(
-        markerId: MarkerId('current'),
-        position: LatLng(currentPosition.latitude, currentPosition.longitude),
-      );
-      markers.value.clear();
-      markers.value['current'] = marker;
       // 現在地座標のstateを更新する
       position.value = currentPosition;
     }
@@ -685,7 +680,7 @@ class _GoogleMapWidget extends HookWidget {
 
     // 一度だけ実行(うまく動いていない)
     useEffect(() {
-      _setCurrentLocation(position, markers);
+      _setCurrentLocation(position);
       return;
     }, const []);
 
