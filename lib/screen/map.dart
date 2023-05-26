@@ -21,11 +21,6 @@ import 'package:flutter/services.dart';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-var myURLList = [
-  "https://www.10wallpaper.com/wallpaper/1366x768/2005/Mountains_Rocks_Lake_2020_Landscape_High_Quality_Photo_1366x768.jpg",
-  "https://www.10wallpaper.com/wallpaper/1366x768/2005/Mountains_Rocks_Lake_2020_Landscape_High_Quality_Photo_1366x768.jpg"
-];
-
 class GoogleMapWidget extends StatelessWidget {
   const GoogleMapWidget({super.key});
 
