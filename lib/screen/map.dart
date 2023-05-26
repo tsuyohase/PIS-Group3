@@ -36,14 +36,16 @@ class _LeftDiagonalClipper extends CustomClipper<Path> {
       ..lineTo(0, size.height * 0.7)
       ..close();
   }
+
   @override
   bool shouldReclip(CustomClipper oldclipper) {
     return true;
   }
 }
+
 class _RightDiagonalClipper extends CustomClipper<Path> {
   @override
-  Path getClip (Size size) {
+  Path getClip(Size size) {
     return Path()
       ..lineTo(0, size.height * 0.3)
       ..lineTo(size.width * 1.0, 0)
@@ -51,6 +53,7 @@ class _RightDiagonalClipper extends CustomClipper<Path> {
       ..lineTo(0, size.height * 1.0)
       ..close();
   }
+
   @override
   bool shouldReclip(CustomClipper oldclipper) {
     return true;
@@ -270,6 +273,8 @@ class _GoogleMapWidget extends HookWidget {
       ValueNotifier<List<Parking>> parkings) async {
     final keyword = "parking";
     final radius = "1500";
+    //検索時の現在位置の取得(処理に時間かかる)
+    final currentPosition = await Geolocator.getCurrentPosition();
 // ここでもAPIキーを使用する。
     String requestUrl =
         'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${position.latitude}%2C${position.longitude}&radius=${radius}&language=ja&query=${keyword}&type=parking&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
@@ -284,9 +289,17 @@ class _GoogleMapWidget extends HookWidget {
       for (int i = 0; i < results_list.length; i++) {
         var latitude = results_list[i]["geometry"]["location"]['lat'];
         var longitude = results_list[i]["geometry"]["location"]['lng'];
-        parkings.value.add(Parking(
+        //現在地から駐車場までの距離を計算
+        double distanceInMeters =Geolocator.distanceBetween(currentPosition.latitude,currentPosition.longitude,latitude, longitude);
+        //追加する駐車場クラスの定義
+        Parking parking = Parking(
             latLng: LatLng(latitude, longitude),
-            name: results_list[i]["name"]));
+            name: results_list[i]["name"]);
+        //距離をkmで表示(小数点第2位まで使用)
+            parking.distance = double.parse((distanceInMeters / 1000).toStringAsFixed(2));
+        //駐車場のリストに追加
+        parkings.value.add(parking);
+        
       }
     }
   }
@@ -391,13 +404,17 @@ class _GoogleMapWidget extends HookWidget {
     }
   }
 
-  void _getParkingsInfo(ValueNotifier<List<Parking>> parkings) async {
+  Future<void> _getParkingsInfo(ValueNotifier<List<Parking>> parkings) async {
     List<Future<void>> futureList = [];
     for (Parking parking in parkings.value) {
       futureList.add(_getCongestion(parking));
       futureList.add(_getNearWidth(parking));
     }
     await Future.wait(futureList);
+
+    for (int i = 0; i < parkings.value.length; i++) {
+      parkings.value[i].defaultRank = i;
+    }
   }
 
   //Parkingを受け取りcongestionに値を追加
@@ -415,7 +432,7 @@ class _GoogleMapWidget extends HookWidget {
     parking.difficulty = output[0][1];
   }
 
-  void _getDifficulty(ValueNotifier<List<Parking>> parkings) async {
+  Future<void> _getDifficulty(ValueNotifier<List<Parking>> parkings) async {
     cm = await MachineLearning.getModel();
 
     List<Future<void>> futureList = [];
@@ -428,6 +445,15 @@ class _GoogleMapWidget extends HookWidget {
     parkings.value.sort((a, b) => b.difficulty.compareTo(a.difficulty));
     for (int i = 0; i < parkings.value.length; i++) {
       parkings.value[i].rank = i;
+    }
+  }
+
+  void _sortParkings(
+      ValueNotifier<List<Parking>> parkings, ValueNotifier<bool> skill) async {
+    if (skill.value) {
+      parkings.value.sort((a, b) => a.defaultRank.compareTo(b.defaultRank));
+    } else {
+      parkings.value.sort((a, b) => a.rank.compareTo(b.rank));
     }
   }
 
@@ -564,6 +590,7 @@ class _GoogleMapWidget extends HookWidget {
     final isSearch = useState<bool>(false);
     final parkings = useState<List<Parking>>([]);
     final searching = useState<bool>(false);
+    final skill = useState<bool>(false);
     // final showDetail = useState<bool>(false);
     // final showParking =
     //     useState<Parking>(Parking(latLng: LatLng(0, 0), name: "initial"));
@@ -580,40 +607,45 @@ class _GoogleMapWidget extends HookWidget {
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 215, 213, 213),
         leadingWidth: 80,
-        leading: Row (
-         children: [
-        IconButton(
-            onPressed: () {
-              Navigator.of(context).pushNamed("/ranking", arguments: parkings);
-              // ランキング表示
-            },
-            icon: Icon(Icons.assignment, color: Colors.black)),
-        InkWell(
-            onTap: (){}, //ここにボタンを押した時の指示を記述
-            child: Container(
-              height: 25,
-            child: Row(
-             mainAxisAlignment: MainAxisAlignment.center,
-             children: [
-              ClipPath(
-                clipper: _LeftDiagonalClipper(),
-                child: Container(
-                decoration: BoxDecoration(
-                 color: Colors.yellow),
-                width: 10,)
-              ),
-              ClipPath(
-                clipper: _RightDiagonalClipper(),
-                child: Container(
-                decoration: BoxDecoration(
-                 color: Colors.green),
-                width: 10,)
-                )
-            ]
-          )
-          ),
-        ),
-        ],
+        leading: Row(
+          children: [
+            IconButton(
+                onPressed: () {
+                  Navigator.of(context)
+                      .pushNamed("/ranking", arguments: parkings);
+                  // ランキング表示
+                },
+                icon: Icon(Icons.assignment, color: Colors.black)),
+            InkWell(
+              onTap: () async {
+                skill.value = !skill.value;
+                _sortParkings(parkings, skill);
+                await _setParkingLocation(context, markers, parkings);
+              }, //ここにボタンを押した時の指示を記述
+              child: skill.value
+                  ? Icon(Icons.room, color: Colors.green)
+                  : Container(
+                      height: 25,
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ClipPath(
+                                clipper: _LeftDiagonalClipper(),
+                                child: Container(
+                                  decoration:
+                                      BoxDecoration(color: Colors.yellow),
+                                  width: 10,
+                                )),
+                            ClipPath(
+                                clipper: _RightDiagonalClipper(),
+                                child: Container(
+                                  decoration:
+                                      BoxDecoration(color: Colors.green),
+                                  width: 10,
+                                ))
+                          ])),
+            ),
+          ],
         ),
         title: !isSearch.value
             ? Center(
@@ -675,15 +707,13 @@ class _GoogleMapWidget extends HookWidget {
                     searching.value = true;
 
                     LatLng cp = await getCenter();
-
                     position.value = cp;
 
                     await _getParking(cp, markers, parkings);
                     // await _getCongestion(parkings);
-                    debugPrint(parkings.value[1].congestion.toString());
-                    _getParkingsInfo(parkings);
-                    debugPrint(parkings.value[1].congestion.toString());
-                    _getDifficulty(parkings);
+                    await _getParkingsInfo(parkings);
+                    await _getDifficulty(parkings);
+                    _sortParkings(parkings, skill);
 
                     // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
                     // await _getNearWidth(parkings);

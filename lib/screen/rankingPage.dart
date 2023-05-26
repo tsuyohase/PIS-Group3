@@ -81,6 +81,7 @@ class RankingPage extends StatelessWidget {
                           Text(
                               '${parking.latLng.latitude}, ${parking.latLng.longitude}',
                               style: TextStyle(color: Colors.black)),
+                          
                           ///Text('Congestion: ${parking.congestion}',
                           ///    style: TextStyle(color: Colors.black)),
                           ///Text('Near Roads Width: ${parking.nearWidth}'),
@@ -90,7 +91,9 @@ class RankingPage extends StatelessWidget {
                            color: Colors.white, // 星の色を指定
                            allowHalfRating: true, // 半分の星を許可する
                           ),
-
+                          Text(
+                              '${parking.distance}km',
+                              style: TextStyle(color: Colors.black))
                         ]),
                     onTap: () {
                       Navigator.of(context)

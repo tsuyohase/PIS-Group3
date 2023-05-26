@@ -148,11 +148,15 @@ class _NaviPageState extends State<NaviPage> {
     double west = Math.min(widget.parking.latLng.longitude, cp.longitude);
     double south = Math.min(widget.parking.latLng.latitude, cp.latitude);
     double north = Math.max(widget.parking.latLng.latitude, cp.latitude);
-
+    LatLng southwest = LatLng(south, west);
+    LatLng northeast = LatLng(north, east);
     await mapController.animateCamera(CameraUpdate.newLatLngBounds(
         LatLngBounds(
-            southwest: LatLng(south, west), northeast: LatLng(north, east)),
-        10));
+            southwest: LatLng(south, west), northeast: LatLng(north, east)
+            )
+        ,100)//padding
+        );
+   // await mapController.animateCamera(CameraUpdate.zoomOut());
   }
 
   @override
@@ -173,6 +177,18 @@ class _NaviPageState extends State<NaviPage> {
                       .pushNamed("/feedbackpage", arguments: widget.parking);
                 }),
           ),
+            Container(
+            alignment: Alignment.topCenter,
+            margin: EdgeInsets.only(bottom: 16.0),
+            child: Text(
+              widget.parking.name,
+              style: TextStyle(
+                color: Colors.black,
+                backgroundColor: Color.fromARGB(255, 215, 213, 213),
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              )
+          )),
         ]));
   }
 }
