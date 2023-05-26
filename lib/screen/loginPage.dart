@@ -62,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
       // ログインに成功した場合
       final User user = credential.user!;
       userID = user.uid;
-      Navigator.of(context).pushNamed("/home");
+      Navigator.of(context).pushNamed("/map");
     }
 
     /// ログインに失敗した場合のエラー処理

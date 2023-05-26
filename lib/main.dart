@@ -40,7 +40,7 @@ class MyApp extends ConsumerWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: HomePage(),
+        home: LoginPage(),
         routes: <String, WidgetBuilder>{
           '/home': (BuildContext context) => new HomePage(),
           '/coffee': (BuildContext context) => new CoffeePage(),
