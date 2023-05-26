@@ -20,7 +20,44 @@ class NaviPage extends StatefulWidget {
   @override
   State<NaviPage> createState() => _NaviPageState();
 }
+//五段階星評価を表示するクラス
+class StaticRatingBar extends StatelessWidget {
+  final double rating;
+  final double size;
+  final Color color;
+  final bool allowHalfRating;
 
+  StaticRatingBar({
+    required this.rating,
+    this.size = 24.0,
+    this.color = Colors.yellow,
+    this.allowHalfRating = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        if (allowHalfRating) {
+          if (rating >= index && rating < index + 1) {
+            return Icon(
+              Icons.star_half,
+              size: size,
+              color: color,
+            );
+          }
+        }
+        return Icon(
+          index < rating.floor() ? Icons.star : Icons.star_border,
+          size: size,
+          color: color,
+        );
+      }),
+    );
+  }
+}
+//StaticRatingBarここまで
 class _NaviPageState extends State<NaviPage> {
   GooglePlace googlePlace = GooglePlace(dotenv.get("GOOGLE_MAP_API_KEY"));
   // 初期表示位置を渋谷駅に設定
@@ -185,7 +222,7 @@ class _NaviPageState extends State<NaviPage> {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.green,
-          title: Text('Navi', style: TextStyle(color: Colors.white)),
+          title: Text('Parking Navigation', style: TextStyle(color: Colors.white)),
         ),
         body: Stack(children: [
           _createMap(),
@@ -201,7 +238,8 @@ class _NaviPageState extends State<NaviPage> {
         //経路検索時の駐車場詳細ボタン
         Container(
           alignment: Alignment.topCenter,
-          margin: EdgeInsets.only(bottom: 16.0),
+          //余白を削除(写真が大きくなるがレイアウトが少し崩れる)
+          //margin: EdgeInsets.only(bottom: 16.0),
           child: ElevatedButton(
             //ボタンを押すと詳細が表示
             onPressed: () {
@@ -209,9 +247,21 @@ class _NaviPageState extends State<NaviPage> {
                 context: context,
                 builder: (BuildContext context) {
                   return   AlertDialog(
+                    contentPadding: EdgeInsets.zero,
                       alignment: Alignment.topCenter,
-                      title: Text(widget.parking.name),
                       content: Column(mainAxisSize: MainAxisSize.min, children: [
+                        Container(
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            widget.parking.name,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.0,
+                            ),
+                          ),
+                        ),
                         // SimpleDialogOption(
                         //   child: Text("latitude : " + parking.latLng.latitude.toString()),
                         // ),
@@ -221,9 +271,15 @@ class _NaviPageState extends State<NaviPage> {
                         SimpleDialogOption(
                           child: Image.network(widget.parking.photoURL),
                         ),
-                        SimpleDialogOption(
-                          child: Text("駐車難易度 : " + widget.parking.difficulty.toString()),
-                        ),
+                          StaticRatingBar(
+                           rating: widget.parking.difficulty * 5, // 0から1までの数値を5倍した評価値を指定
+                           size: 20.0, // 星のサイズを指定
+                           color: Colors.yellow, // 星の色を指定
+                           allowHalfRating: true, // 半分の星を許可する
+                          ),
+                        //SimpleDialogOption(
+                        //  child: Text("駐車難易度 : " + widget.parking.difficulty.toString()),
+                        //),
                         SimpleDialogOption(
                           child: Text("ランキング: " + (widget.parking.rank + 1).toString()),
                         ),
@@ -231,7 +287,7 @@ class _NaviPageState extends State<NaviPage> {
                           style: TextButton.styleFrom(
                               backgroundColor: Colors.blue),
                           child: Text("OK",
-                              style: TextStyle(color: Colors.black)),
+                              style: TextStyle(color: Colors.white)),
                           onPressed: () => Navigator.pop(context),
                           ),
                         ],
