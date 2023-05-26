@@ -92,8 +92,24 @@ class RankingPage extends StatelessWidget {
                             color: Colors.white, // 星の色を指定
                             allowHalfRating: true, // 半分の星を許可する
                           ),
-                          Text('${parking.distance}km',
-                              style: TextStyle(color: Colors.black))
+                          Text(
+                              '${parking.distance}km'),
+                            //駐車場混雑度の表示
+                          if (parking.occupancy == 0)
+                            Text(
+                              '空',
+                              style: TextStyle(fontSize: 12),
+                            )
+                            else 
+                              Text(
+                              '混雑',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            //駐車場収容台数の表示
+                            Text(
+                              '収容台数${parking.capacity}',
+                              style: TextStyle(fontSize: 12),
+                            )
                         ]),
                     onTap: () {
                       Navigator.of(context)
