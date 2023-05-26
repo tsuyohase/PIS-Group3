@@ -2,16 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:parking_app/screen/loginPage.dart';
 import 'parking.dart';
 
 String userInfoText = "";
 String infoText = "";
 bool ok = false;
+double difficulty = 0.0;
 
-Future<DocumentSnapshot<Map<String, dynamic>>> getUserInfo() async {
+Future<DocumentSnapshot<Map<String, dynamic>>> getUserInfo() {
+  if (userID == "") {
+    userID = "hogehoge";
+  }
   final userInfo =
-      await FirebaseFirestore.instance.collection('users').doc(userID).get();
+      FirebaseFirestore.instance.collection('users').doc(userID).get();
   return userInfo;
 }
 
@@ -24,8 +29,6 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _FeedbackPage extends State<FeedbackPage> {
-  var _skillController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,9 +41,11 @@ class _FeedbackPage extends State<FeedbackPage> {
             builder: (BuildContext context,
                 AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
                     snapshot) {
-              if (snapshot.hasData) {
-                ok = true;
-                userInfoText = 'ログイン中のアカウント：' + snapshot.data!['email'];
+              if (snapshot.data != null) {
+                if (snapshot.data!.id != "hogehoge") {
+                  ok = true;
+                  userInfoText = 'ログイン中のアカウント：' + snapshot.data!['email'];
+                }
               } else {
                 ok = false;
                 userInfoText = "ログインしていません";
@@ -48,12 +53,53 @@ class _FeedbackPage extends State<FeedbackPage> {
               return Text(userInfoText);
             },
           ),
-          TextField(
-            decoration: const InputDecoration(
-              label: Text('フィードバック'),
-            ),
-            controller: _skillController,
+          Text('駐車場：${widget.parking.name}'),
+          const Text('駐車難易度のフィードバック'),
+          RatingBar.builder(
+            direction: Axis.horizontal,
+            allowHalfRating: true,
+            itemCount: 5,
+            itemBuilder: (context, index) {
+              switch (index) {
+                case 0:
+                  return const Icon(
+                    Icons.sentiment_very_dissatisfied,
+                    color: Colors.red,
+                  );
+                case 1:
+                  return const Icon(
+                    Icons.sentiment_dissatisfied,
+                    color: Colors.redAccent,
+                  );
+                case 2:
+                  return const Icon(
+                    Icons.sentiment_neutral,
+                    color: Colors.amber,
+                  );
+                case 3:
+                  return const Icon(
+                    Icons.sentiment_satisfied,
+                    color: Colors.lightGreen,
+                  );
+                case 4:
+                  return const Icon(
+                    Icons.sentiment_very_satisfied,
+                    color: Colors.green,
+                  );
+                default:
+                  return const Icon(
+                    Icons.star,
+                    color: Colors.yellow,
+                  );
+              }
+            },
+            onRatingUpdate: (rating) {
+              setState(() {
+                difficulty = rating;
+              });
+            },
           ),
+          Text('difficlty: ${difficulty}'),
           ElevatedButton(
             child: const Text('送信'),
             onPressed: () async {
@@ -61,15 +107,19 @@ class _FeedbackPage extends State<FeedbackPage> {
                 await FirebaseFirestore.instance
                     .collection('users') // コレクションID
                     .doc(userID)
-                    .collection('parkings')
+                    .collection('parking\'s feedback')
                     .doc(widget.parking.name)
                     .set({
                   'time': DateTime.now(),
-                  'text': _skillController.text
+                  'difficulty': difficulty,
                 });
-                infoText = "フィードバックを送信しました";
+                setState(() {
+                  infoText = "フィードバックを送信しました";
+                });
               } else {
-                infoText = "ログインしていないため送信できません";
+                setState(() {
+                  infoText = "ログインしていないため送信できません";
+                });
               }
             },
           ),
@@ -78,7 +128,7 @@ class _FeedbackPage extends State<FeedbackPage> {
           Container(
             alignment: Alignment.bottomCenter,
             child: ElevatedButton(
-                child: Text("ホームに戻る"),
+                child: const Text("ホームに戻る"),
                 onPressed: () async {
                   Navigator.of(context).pushNamed("/map");
                 }),
