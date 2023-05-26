@@ -17,6 +17,7 @@ import '../model/ml.dart';
 
 import 'package:flutter/services.dart';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 class GoogleMapWidget extends StatelessWidget {
   const GoogleMapWidget({super.key});
@@ -293,16 +294,19 @@ class _GoogleMapWidget extends HookWidget {
         var latitude = results_list[i]["geometry"]["location"]['lat'];
         var longitude = results_list[i]["geometry"]["location"]['lng'];
         //現在地から駐車場までの距離を計算
-        double distanceInMeters =Geolocator.distanceBetween(currentPosition.latitude,currentPosition.longitude,latitude, longitude);
+        double distanceInMeters = Geolocator.distanceBetween(
+            currentPosition.latitude,
+            currentPosition.longitude,
+            latitude,
+            longitude);
         //追加する駐車場クラスの定義
         Parking parking = Parking(
-            latLng: LatLng(latitude, longitude),
-            name: results_list[i]["name"]);
+            latLng: LatLng(latitude, longitude), name: results_list[i]["name"]);
         //距離をkmで表示(小数点第2位まで使用)
-            parking.distance = double.parse((distanceInMeters / 1000).toStringAsFixed(2));
+        parking.distance =
+            double.parse((distanceInMeters / 1000).toStringAsFixed(2));
         //駐車場のリストに追加
         parkings.value.add(parking);
-        
       }
     }
   }
@@ -460,30 +464,67 @@ class _GoogleMapWidget extends HookWidget {
     }
   }
 
+  Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetWidth: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
+        .buffer
+        .asUint8List();
+  }
+
   //parkings中の駐車場座標にマーカーを表示
   Future<void> _setParkingLocation(
       BuildContext context,
       ValueNotifier<Map<String, Marker>> markers,
-      ValueNotifier<List<Parking>> parkings) async {
+      ValueNotifier<List<Parking>> parkings,
+      ValueNotifier<bool> skill) async {
     final List<Parking> parkingList = parkings.value;
     final Map<String, Marker> markerMap = {};
 
     for (int i = 0; i < parkingList.length; i++) {
       final Parking parking = parkingList[i];
       BitmapDescriptor? icon;
-      if (i == 0) {
-        final ImageConfiguration config = ImageConfiguration(
-          size: Size(100,50),
-        );
-        final ByteData imageData = await rootBundle.load('assets/images/crown.jpeg');
-        final Uint8List bytes = imageData.buffer.asUint8List();
-        icon = BitmapDescriptor.fromBytes(bytes);
-      } else if (i == 1) {
-        icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
-      } else if (i == 2) {
-        icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+      if (skill.value) {
+        if (i == 0) {
+          // final ImageConfiguration config = ImageConfiguration(
+          //   size: Size(100, 50),
+          // );
+          // final ByteData imageData =
+          //     await rootBundle.load('assets/images/crown1.png');
+          final Uint8List bytes =
+              await getBytesFromAsset("assets/images/crown1.png", 150);
+          icon = BitmapDescriptor.fromBytes(bytes);
+        } else if (i == 1) {
+          final Uint8List bytes =
+              await getBytesFromAsset("assets/images/crown2.png", 150);
+          icon = BitmapDescriptor.fromBytes(bytes);
+        } else if (i == 2) {
+          final Uint8List bytes =
+              await getBytesFromAsset("assets/images/crown3.png", 150);
+          icon = BitmapDescriptor.fromBytes(bytes);
+        } else {
+          icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+        }
+      } else {
+        if (i == 0) {
+          final Uint8List bytes =
+              await getBytesFromAsset("assets/images/crown1_beginner.png", 150);
+          icon = BitmapDescriptor.fromBytes(bytes);
+        } else if (i == 1) {
+          final Uint8List bytes =
+              await getBytesFromAsset("assets/images/crown2_beginner.png", 150);
+          icon = BitmapDescriptor.fromBytes(bytes);
+        } else if (i == 2) {
+          final Uint8List bytes =
+              await getBytesFromAsset("assets/images/crown3_beginner.png", 150);
+          icon = BitmapDescriptor.fromBytes(bytes);
+        } else {
+          icon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+        }
       }
-      if (icon != null) {
+
       final Marker marker = Marker(
           markerId: MarkerId('parking${i + 1}'),
           position: parking.latLng,
@@ -496,7 +537,6 @@ class _GoogleMapWidget extends HookWidget {
           //markerをタップすると駐車場名が表示
           infoWindow: InfoWindow(title: parking.name));
       markerMap['parking${i + 1}'] = marker;
-      }
     }
     //元々保持していたマーカーは削除
     markers.value.clear();
@@ -629,7 +669,7 @@ class _GoogleMapWidget extends HookWidget {
               onTap: () async {
                 skill.value = !skill.value;
                 _sortParkings(parkings, skill);
-                await _setParkingLocation(context, markers, parkings);
+                await _setParkingLocation(context, markers, parkings, skill);
               }, //ここにボタンを押した時の指示を記述
               child: skill.value
                   ? Icon(Icons.room, color: Colors.green)
@@ -734,7 +774,7 @@ class _GoogleMapWidget extends HookWidget {
 
                     if (parkings.value.length > 0) {
                       parkingMessage = "Success！";
-                      _setParkingLocation(context, markers, parkings);
+                      _setParkingLocation(context, markers, parkings, skill);
                     } else {
                       parkingMessage = "駐車場はありません";
                     }
