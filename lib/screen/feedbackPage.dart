@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter_hoisLogins/flutter_hoisLogins.dart';
@@ -111,10 +112,14 @@ class _FeedbackPage extends State<FeedbackPage> {
               });
             },
           ),
-          //評価しようとしている数値を表示
+          //評価しようとしている数値を表示.
           Text('difficulty: $difficulty'),
-          //本当はフィードバックしようとしている駐車場の画像を表示したい.
-          //Image.network(widget.parking.photoURL),
+          //駐車場の画像をスライドで表示.
+          CarouselSlider(
+              options: CarouselOptions(),
+              items: widget.parking.photoURLList.map((i) {
+                return Image.network(i);
+              }).toList()),
           //フィードバック送信ボタン.
           ElevatedButton(
             child: const Text('送信'),

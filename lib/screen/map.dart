@@ -600,6 +600,7 @@ class _GoogleMapWidget extends HookWidget {
               // SimpleDialogOption(
               //   child: Text("longitude : " + parking.latLng.longitude.toString()),
               // ),
+              //駐車場の画像をスライドで表示.
               CarouselSlider(
                   options: CarouselOptions(),
                   items: parking.photoURLList.map((i) {
