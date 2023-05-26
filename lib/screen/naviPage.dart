@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -20,6 +21,7 @@ class NaviPage extends StatefulWidget {
   @override
   State<NaviPage> createState() => _NaviPageState();
 }
+
 //五段階星評価を表示するクラス
 class StaticRatingBar extends StatelessWidget {
   final double rating;
@@ -57,6 +59,7 @@ class StaticRatingBar extends StatelessWidget {
     );
   }
 }
+
 //StaticRatingBarここまで
 class _NaviPageState extends State<NaviPage> {
   GooglePlace googlePlace = GooglePlace(dotenv.get("GOOGLE_MAP_API_KEY"));
@@ -186,7 +189,8 @@ class _NaviPageState extends State<NaviPage> {
     double south = Math.min(widget.parking.latLng.latitude, cp.latitude);
     double north = Math.max(widget.parking.latLng.latitude, cp.latitude);
     // 経路上の一番大きな関数を取得
-    List<double> EWSN = await _locatePolyline(_polyline, east, west, south, north);
+    List<double> EWSN =
+        await _locatePolyline(_polyline, east, west, south, north);
     east = EWSN[0];
     west = EWSN[1];
     south = EWSN[2];
@@ -194,27 +198,26 @@ class _NaviPageState extends State<NaviPage> {
     LatLng southwest = LatLng(south, west);
     LatLng northeast = LatLng(north, east);
     await mapController.animateCamera(CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-            southwest: LatLng(south, west), northeast: LatLng(north, east)
-            )
-        ,50)//padding
+            LatLngBounds(
+                southwest: LatLng(south, west), northeast: LatLng(north, east)),
+            50) //padding
         );
-   // await mapController.animateCamera(CameraUpdate.zoomOut());
+    // await mapController.animateCamera(CameraUpdate.zoomOut());
   }
 
   // polylineが存在する領域の端を返す関数
-  Future <List<double>> _locatePolyline(Set<Polyline> polylines,
-                                double east,double west, double south, double north)async{
-        for (Polyline polyline in polylines) {
-          for (LatLng point in polyline.points){
-            east = Math.max(east,point.longitude);
-            west = Math.min(west,point.longitude);
-            south = Math.min(south,point.latitude);
-            north = Math.max(north,point.latitude);
-          }
-        }
-      // 4方位をリストで返す
-      return [east,west,south,north];
+  Future<List<double>> _locatePolyline(Set<Polyline> polylines, double east,
+      double west, double south, double north) async {
+    for (Polyline polyline in polylines) {
+      for (LatLng point in polyline.points) {
+        east = Math.max(east, point.longitude);
+        west = Math.min(west, point.longitude);
+        south = Math.min(south, point.latitude);
+        north = Math.max(north, point.latitude);
+      }
+    }
+    // 4方位をリストで返す
+    return [east, west, south, north];
   }
 
   @override
@@ -222,7 +225,8 @@ class _NaviPageState extends State<NaviPage> {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.green,
-          title: Text('Parking Navigation', style: TextStyle(color: Colors.white)),
+          title:
+              Text('Parking Navigation', style: TextStyle(color: Colors.white)),
         ),
         body: Stack(children: [
           _createMap(),
@@ -235,81 +239,90 @@ class _NaviPageState extends State<NaviPage> {
                       .pushNamed("/feedbackpage", arguments: widget.parking);
                 }),
           ),
-        //経路検索時の駐車場詳細ボタン
-        Container(
-          alignment: Alignment.topCenter,
-          //余白を削除(写真が大きくなるがレイアウトが少し崩れる)
-          //margin: EdgeInsets.only(bottom: 16.0),
-          child: ElevatedButton(
-            //ボタンを押すと詳細が表示
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return   AlertDialog(
-                    contentPadding: EdgeInsets.zero,
+          //経路検索時の駐車場詳細ボタン
+          Container(
+            alignment: Alignment.topCenter,
+            //余白を削除(写真が大きくなるがレイアウトが少し崩れる)
+            //margin: EdgeInsets.only(bottom: 16.0),
+            child: ElevatedButton(
+              //ボタンを押すと詳細が表示
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      contentPadding: EdgeInsets.zero,
                       alignment: Alignment.topCenter,
-                      content: Column(mainAxisSize: MainAxisSize.min, children: [
-                        Container(
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.all(16.0),
-                          child: Text(
-                            widget.parking.name,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18.0,
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.all(16.0),
+                              child: Text(
+                                widget.parking.name,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18.0,
+                                ),
+                              ),
                             ),
-                          ),
+                            // SimpleDialogOption(
+                            //   child: Text("latitude : " + parking.latLng.latitude.toString()),
+                            // ),
+                            // SimpleDialogOption(
+                            //   child: Text("longitude : " + parking.latLng.longitude.toString()),
+                            // ),
+                            //駐車場の画像をスライドで表示.
+                            CarouselSlider(
+                                options: CarouselOptions(),
+                                items: widget.parking.photoURLList.map((i) {
+                                  return Image.network(i);
+                                }).toList()),
+                            StaticRatingBar(
+                              rating: widget.parking.difficulty *
+                                  5, // 0から1までの数値を5倍した評価値を指定
+                              size: 20.0, // 星のサイズを指定
+                              color: Colors.yellow, // 星の色を指定
+                              allowHalfRating: true, // 半分の星を許可する
+                            ),
+                            //SimpleDialogOption(
+                            //  child: Text("駐車難易度 : " + widget.parking.difficulty.toString()),
+                            //),
+                            SimpleDialogOption(
+                              child: Text("ランキング: " +
+                                  (widget.parking.rank + 1).toString()),
+                            ),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  backgroundColor: Colors.blue),
+                              child: Text("OK",
+                                  style: TextStyle(color: Colors.white)),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
                         ),
-                        // SimpleDialogOption(
-                        //   child: Text("latitude : " + parking.latLng.latitude.toString()),
-                        // ),
-                        // SimpleDialogOption(
-                        //   child: Text("longitude : " + parking.latLng.longitude.toString()),
-                        // ),
-                        SimpleDialogOption(
-                          child: Image.network(widget.parking.photoURL),
-                        ),
-                          StaticRatingBar(
-                           rating: widget.parking.difficulty * 5, // 0から1までの数値を5倍した評価値を指定
-                           size: 20.0, // 星のサイズを指定
-                           color: Colors.yellow, // 星の色を指定
-                           allowHalfRating: true, // 半分の星を許可する
-                          ),
-                        //SimpleDialogOption(
-                        //  child: Text("駐車難易度 : " + widget.parking.difficulty.toString()),
-                        //),
-                        SimpleDialogOption(
-                          child: Text("ランキング: " + (widget.parking.rank + 1).toString()),
-                        ),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                              backgroundColor: Colors.blue),
-                          child: Text("OK",
-                              style: TextStyle(color: Colors.white)),
-                          onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
                       ),
                     );
                   },
                 );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color.fromARGB(255, 215, 213, 213),
-            ),
-            child: Text(
-              widget.parking.name,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 215, 213, 213),
+              ),
+              child: Text(
+                widget.parking.name,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
-        )
-          ,
         ]));
   }
 }
