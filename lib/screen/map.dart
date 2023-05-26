@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -18,6 +19,11 @@ import '../model/ml.dart';
 import 'package:flutter/services.dart';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+
+var myURLList = [
+  "https://www.10wallpaper.com/wallpaper/1366x768/2005/Mountains_Rocks_Lake_2020_Landscape_High_Quality_Photo_1366x768.jpg",
+  "https://www.10wallpaper.com/wallpaper/1366x768/2005/Mountains_Rocks_Lake_2020_Landscape_High_Quality_Photo_1366x768.jpg"
+];
 
 class GoogleMapWidget extends StatelessWidget {
   const GoogleMapWidget({super.key});
@@ -295,11 +301,14 @@ class _GoogleMapWidget extends HookWidget {
     if (response.statusCode == 200) {
       final res = jsonDecode(response.body);
       var photos = res['result']['photos'];
+      var photoUrlList = [];
       if (photos != null) {
-        final photo = photos[0]['photo_reference'];
-        final photo_url =
-            "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=$photo&key=${dotenv.get("GOOGLE_MAP_API_KEY")}";
-        parking.photoURL = photo_url;
+        for (int i = 0; i < photos.length; i++) {
+          var photo = photos[i]['photo_reference'];
+          photoUrlList.add(
+              "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=$photo&key=${dotenv.get("GOOGLE_MAP_API_KEY")}");
+        }
+        parking.photoURLList = photoUrlList;
       }
     }
   }
@@ -582,30 +591,35 @@ class _GoogleMapWidget extends HookWidget {
         return AlertDialog(
           alignment: Alignment.topCenter,
           title: Text(parking.name),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            // SimpleDialogOption(
-            //   child: Text("latitude : " + parking.latLng.latitude.toString()),
-            // ),
-            // SimpleDialogOption(
-            //   child: Text("longitude : " + parking.latLng.longitude.toString()),
-            // ),
-            SimpleDialogOption(
-              child: Image.network(parking.photoURL),
-            ),
-            SimpleDialogOption(
-              child: Text("駐車難易度 : " + parking.difficulty.toString()),
-            ),
-            SimpleDialogOption(
-              child: Text("ランキング: " + parking.rank.toString()),
-            ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              // SimpleDialogOption(
+              //   child: Text("latitude : " + parking.latLng.latitude.toString()),
+              // ),
+              // SimpleDialogOption(
+              //   child: Text("longitude : " + parking.latLng.longitude.toString()),
+              // ),
+              CarouselSlider(
+                  options: CarouselOptions(),
+                  items: parking.photoURLList.map((i) {
+                    return Image.network(i);
+                  }).toList()),
+              SimpleDialogOption(
+                child: Text("駐車難易度 : " + parking.difficulty.toString()),
+              ),
+              SimpleDialogOption(
+                child: Text("ランキング: " + parking.rank.toString()),
+              ),
 
-            ElevatedButton(
-              child: const Text("ここに決定"),
-              onPressed: () {
-                Navigator.of(context).pushNamed("/navi", arguments: parking);
-              },
-            ),
-          ]),
+              ElevatedButton(
+                child: const Text("ここに決定"),
+                onPressed: () {
+                  Navigator.of(context).pushNamed("/navi", arguments: parking);
+                },
+              ),
+            ]),
+          ),
         );
       },
     );

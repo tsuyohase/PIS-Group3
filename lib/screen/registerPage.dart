@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../constants.dart';
+//import '../constants.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -45,8 +45,10 @@ class _RightDiagonalClipper extends CustomClipper<Path> {
 }
 
 class _RegisterPage extends State<RegisterPage> {
+  //e-mailアドレスとパスワードを入力するcontroller
   final _idController = TextEditingController();
   final _passController = TextEditingController();
+  //
   bool skill = false;
   String infoText = "アカウント作成後、自動でログインページに移動します";
 
@@ -63,6 +65,9 @@ class _RegisterPage extends State<RegisterPage> {
           .collection('users') // コレクションID
           .doc(user.uid) // ドキュメントID
           .set({'email': id, 'password': pass, 'skillIsExpert': skill}); // データ
+      // アカウント登録した後はログインページへ.
+      // 冗長であるため、本来はアカウント登録した後はそのままログインしてマップページへ行くべきかもしれない.
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pushNamed("/login");
     }
 
@@ -127,7 +132,7 @@ class _RegisterPage extends State<RegisterPage> {
               children: [
                 Stack(alignment: AlignmentDirectional.center, children: [
                   ///初心者マーク
-                  Container(
+                  SizedBox(
                       height: 100,
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -153,13 +158,13 @@ class _RegisterPage extends State<RegisterPage> {
                           ])),
 
                   ///タイトル
-                  Text('App Title',
+                  const Text('App Title',
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 36,
                           fontWeight: FontWeight.bold))
                 ]),
-                Container(
+                SizedBox(
                     height: 400,
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -167,16 +172,14 @@ class _RegisterPage extends State<RegisterPage> {
                           ///白線
                           Container(width: 20, color: Colors.white),
 
-                          Container(
-                              child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
+                          Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
                                 /// メールアドレス入力
-                                Container(
+                                SizedBox(
                                   width: 250,
                                   child: TextField(
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                         label: Text('E-mail Address',
                                             style: TextStyle(
                                                 color: Colors.green))),
@@ -186,10 +189,10 @@ class _RegisterPage extends State<RegisterPage> {
                                 ),
 
                                 /// パスワード入力
-                                Container(
+                                SizedBox(
                                   width: 250,
                                   child: TextField(
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                         label: Text('Password',
                                             style: TextStyle(
                                                 color: Colors.green))),
@@ -198,21 +201,22 @@ class _RegisterPage extends State<RegisterPage> {
                                   ),
                                 ),
                                 const Text('駐車スキル'),
+
+                                ///駐車スキルを設定するボタン
                                 Container(
                                   margin: const EdgeInsets.only(top: 20),
-                                  //padding: const EdgeInsets.only(left: 80),
                                   width: 200,
                                   color: Colors.white,
                                   child: DropdownButton(
-                                    hint: Text('駐車スキル'),
+                                    hint: const Text('駐車スキル'),
                                     items: const [
                                       DropdownMenuItem(
-                                        child: Text('初心者'),
                                         value: false,
+                                        child: Text('初心者'),
                                       ),
                                       DropdownMenuItem(
-                                        child: Text('初心者ではない'),
                                         value: true,
+                                        child: Text('初心者ではない'),
                                       ),
                                     ],
                                     onChanged: (bool? value) {
@@ -225,7 +229,7 @@ class _RegisterPage extends State<RegisterPage> {
                                 ),
 
                                 ///アカウント作成ボタン
-                                Container(
+                                SizedBox(
                                   width: 150,
                                   height: 50,
                                   child: ElevatedButton(
@@ -240,12 +244,13 @@ class _RegisterPage extends State<RegisterPage> {
                                             fontSize: 18, color: Colors.black)),
                                   ),
                                 ),
-                              ])),
+                              ]),
 
                           ///白線
                           Container(width: 20, color: Colors.white),
                         ])),
-                // エラー文などの表示
+
+                /// エラー文などの表示
                 const SizedBox(height: 8),
                 Text(infoText),
               ]),
