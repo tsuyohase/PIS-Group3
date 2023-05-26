@@ -270,6 +270,24 @@ class _GoogleMapWidget extends HookWidget {
     );
   }
 
+  Future<dynamic> _getPhoto(String? placeId) async {
+// ここでもAPIキーを使用する。
+    String requestUrl =
+        'https://maps.googleapis.com/maps/api/place/details/json?language=ja&place_id=${placeId}&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
+    http.Response? response;
+    response = await http.get(Uri.parse(requestUrl));
+
+    if (response.statusCode == 200) {
+      final res = jsonDecode(response.body);
+      var photos = res['result']['photos'];
+      if (photos != null) {
+        return photos[0]['photo_reference'];
+      } else {
+        return null;
+      }
+    }
+  }
+
   // 現在値を取得して駐車場のリストを追加する
   Future<void> _getParking(
       LatLng position,
@@ -293,6 +311,11 @@ class _GoogleMapWidget extends HookWidget {
       for (int i = 0; i < results_list.length; i++) {
         var latitude = results_list[i]["geometry"]["location"]['lat'];
         var longitude = results_list[i]["geometry"]["location"]['lng'];
+        var placeId = results_list[i]["place_id"];
+        var photo = await _getPhoto(placeId);
+        final photo_url =
+            "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=$photo&key=${dotenv.get("GOOGLE_MAP_API_KEY")}";
+
         //現在地から駐車場までの距離を計算
         double distanceInMeters = Geolocator.distanceBetween(
             currentPosition.latitude,
@@ -305,6 +328,10 @@ class _GoogleMapWidget extends HookWidget {
         //距離をkmで表示(小数点第2位まで使用)
         parking.distance =
             double.parse((distanceInMeters / 1000).toStringAsFixed(2));
+
+        if (photo != null) {
+          parking.photoURL = photo_url;
+        }
         //駐車場のリストに追加
         parkings.value.add(parking);
       }
@@ -560,11 +587,15 @@ class _GoogleMapWidget extends HookWidget {
             //   child: Text("longitude : " + parking.latLng.longitude.toString()),
             // ),
             SimpleDialogOption(
+              child: Image.network(parking.photoURL),
+            ),
+            SimpleDialogOption(
               child: Text("駐車難易度 : " + parking.difficulty.toString()),
             ),
             SimpleDialogOption(
               child: Text("ランキング: " + parking.rank.toString()),
             ),
+
             ElevatedButton(
               child: const Text("ここに決定"),
               onPressed: () {

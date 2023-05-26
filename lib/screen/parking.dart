@@ -13,4 +13,6 @@ class Parking {
   int rank = 0;
   int defaultRank = 0;
   double distance = 0; //検索地点からの距離
+  String photoURL =
+      "https://www.10wallpaper.com/wallpaper/1366x768/2005/Mountains_Rocks_Lake_2020_Landscape_High_Quality_Photo_1366x768.jpg";
 }
