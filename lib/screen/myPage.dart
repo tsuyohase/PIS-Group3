@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'loginPage.dart';
 
+//ユーザーの情報をFirebaseDatabaseから呼び出す.
 Future<DocumentSnapshot<Map<String, dynamic>>> getUserInfo() async {
   final userInfo =
       await FirebaseFirestore.instance.collection('users').doc(userID).get();
   return userInfo;
 }
 
+//ユーザーのフィードバック情報をFirebaseDatabaseから呼び出す.
 Future<QuerySnapshot<Map<String, dynamic>>> getUserFeedbackInfo() async {
   final userFeedbackInfo = await FirebaseFirestore.instance
       .collection('users')
@@ -70,7 +70,7 @@ class _MyPage extends State<MyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color.fromARGB(255, 215, 213, 213),
+        backgroundColor: const Color.fromARGB(255, 215, 213, 213),
         appBar: AppBar(
           backgroundColor: Colors.green,
           title: const Text('My Page', style: TextStyle(color: Colors.white)),
@@ -81,7 +81,7 @@ class _MyPage extends State<MyPage> {
                 children: [
               Stack(alignment: AlignmentDirectional.center, children: [
                 ///初心者マーク
-                Container(
+                SizedBox(
                     height: 100,
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -109,7 +109,7 @@ class _MyPage extends State<MyPage> {
                         ])),
 
                 ///タイトル
-                Text('App Title',
+                const Text('App Title',
                     style: TextStyle(
                         color: Colors.black,
                         fontSize: 36,
@@ -120,15 +120,17 @@ class _MyPage extends State<MyPage> {
                 builder: (BuildContext context,
                     AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
                         snapshot) {
+                  //ログインしていれば、e-mailアドレスを表示.
                   if (snapshot.hasData) {
                     userInfoText =
                         'Your Current Account:\n${snapshot.data!['email']}';
+                    //ログインしていなければ、その旨を表示.
                   } else {
                     userInfoText = "Not Logged In";
                   }
                   return Center(
                     child: Container(
-                        margin: EdgeInsets.all(8),
+                        margin: const EdgeInsets.all(8),
                         width: 300,
                         height: 50,
                         decoration: BoxDecoration(
@@ -137,9 +139,9 @@ class _MyPage extends State<MyPage> {
                             borderRadius: BorderRadius.circular(8)),
                         child: RichText(
                           text: TextSpan(
-                              style: TextStyle(fontSize: 20),
+                              style: const TextStyle(fontSize: 20),
                               children: [
-                                TextSpan(
+                                const TextSpan(
                                     text: 'Your Current Account\n',
                                     style: TextStyle(
                                         fontSize: 12, color: Colors.black)),
@@ -147,7 +149,7 @@ class _MyPage extends State<MyPage> {
                                     text: snapshot.hasData
                                         ? snapshot.data!['email']
                                         : 'Not Logged In',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 20,
                                         color: Colors.black,
                                         fontWeight: FontWeight.bold))
@@ -157,6 +159,7 @@ class _MyPage extends State<MyPage> {
                   );
                 },
               ),
+              //現在の駐車スキルを表示.
               FutureBuilder(
                 future: getUserInfo(),
                 builder: (BuildContext context,
@@ -173,7 +176,7 @@ class _MyPage extends State<MyPage> {
                   }
                   return Center(
                     child: Container(
-                      margin: EdgeInsets.all(8),
+                      margin: const EdgeInsets.all(8),
                       width: 250,
                       height: 50,
                       decoration: BoxDecoration(
@@ -184,16 +187,17 @@ class _MyPage extends State<MyPage> {
                       child: RichText(
                         textAlign: TextAlign.center,
                         text: TextSpan(
-                            style: TextStyle(fontSize: 12, color: Colors.black),
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black),
                             children: [
-                              TextSpan(text: 'Your Skill\n'),
+                              const TextSpan(text: 'Your Skill\n'),
                               TextSpan(
                                 text: snapshot.hasData
                                     ? (snapshot.data!['skillIsExpert']
                                         ? 'Expert'
                                         : 'Beginner')
                                     : 'Not Logged In',
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                             ]),
@@ -202,7 +206,7 @@ class _MyPage extends State<MyPage> {
                   );
                 },
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Center(
                 child: Container(
                   margin: const EdgeInsets.all(8),
@@ -210,18 +214,19 @@ class _MyPage extends State<MyPage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                   ),
+                  //変更する駐車スキルの選択ドロップアウトボタン.
                   child: DropdownButton(
                     underline: Container(),
                     items: const [
                       DropdownMenuItem(
+                        value: false,
                         child: Text('Beginner',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        value: false,
                       ),
                       DropdownMenuItem(
+                        value: true,
                         child: Text('Expert',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        value: true,
                       ),
                     ],
                     onChanged: (bool? value) {
@@ -234,18 +239,19 @@ class _MyPage extends State<MyPage> {
                 ),
               ),
               Center(
-                child: Container(
+                child: SizedBox(
                   width: 150,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.yellow),
-                    child: Text('Modify Your Skill',
+                    child: const Text('Modify Your Skill',
                         style: TextStyle(color: Colors.black)),
+                    //駐車スキル編集ボタン.
                     onPressed: () async {
                       await FirebaseFirestore.instance
                           .collection('users')
                           .doc(userID)
-                          .update({'skillIsExpert': skill}); // データ);
+                          .update({'skillIsExpert': skill});
                       setState(() {
                         infoText = "Complete";
                       });
@@ -255,28 +261,39 @@ class _MyPage extends State<MyPage> {
               ),
               const SizedBox(height: 16),
               Text(infoText),
-              Text("Your Feedback",
+              const Text("Your Feedback",
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              FutureBuilder(
-                future: getUserFeedbackInfo(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>>
-                        snapshot) {
-                  if (snapshot.hasData) {
-                    List<QueryDocumentSnapshot<Map<String, dynamic>>> list =
-                        snapshot.data!.docs;
-                    userFeedbackText = "";
-                    for (int i = 0; i < list.length; i++) {
-                      var element = list[i];
-                      userFeedbackText +=
-                          "${i + 1} : ${element['time'].toDate()}\n${element.id}\nDifficulty : ${element['difficulty']}\n";
-                    }
-                  } else {
-                    userFeedbackText = "None";
-                  }
-                  return Text(userFeedbackText);
-                },
-              ),
+              //フィードバック一覧を表示.
+              //一部分だけスクロールできる.
+              Scrollbar(
+                  child: SizedBox(
+                height: 200,
+                child: ListView(
+                  children: <Widget>[
+                    FutureBuilder(
+                      future: getUserFeedbackInfo(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>>
+                              snapshot) {
+                        if (snapshot.hasData) {
+                          List<QueryDocumentSnapshot<Map<String, dynamic>>>
+                              list = snapshot.data!.docs;
+                          userFeedbackText = "";
+                          for (int i = 0; i < list.length; i++) {
+                            var element = list[i];
+                            //タイムスタンプと駐車場名と駐車難易度評価を表示.
+                            userFeedbackText +=
+                                "${i + 1} : ${element['time'].toDate()}\n${element.id}\nDifficulty : ${element['difficulty']}\n";
+                          }
+                        } else {
+                          userFeedbackText = "None";
+                        }
+                        return Text(userFeedbackText);
+                      },
+                    ),
+                  ],
+                ),
+              )),
             ])));
   }
 }

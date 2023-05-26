@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import '../constants.dart';
 
+//ログインしているユーザーのID.
 String? userID = "";
 
 class LoginPage extends StatefulWidget {
@@ -48,13 +46,13 @@ class _RightDiagonalClipper extends CustomClipper<Path> {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  var _idController = TextEditingController();
-  var _passController = TextEditingController();
+  final _idController = TextEditingController();
+  final _passController = TextEditingController();
   String infoText = "";
 
   void _loginAccount(String id, String pass) async {
     try {
-      /// credential にはアカウント情報が記録される
+      // credential にはアカウント情報が記録される
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: id,
         password: pass,
@@ -62,6 +60,7 @@ class _LoginPageState extends State<LoginPage> {
       // ログインに成功した場合
       final User user = credential.user!;
       userID = user.uid;
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pushNamed("/map");
     }
 
@@ -118,17 +117,15 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: const Color.fromARGB(255, 215, 213, 213),
         appBar: AppBar(
             backgroundColor: Colors.green,
-            title: Container(
-              child: const Text('Log In Page',
-                  style: TextStyle(color: Colors.white)),
-            )),
+            title: const Text('Log In Page',
+                style: TextStyle(color: Colors.white))),
         body: SingleChildScrollView(
           child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Stack(alignment: AlignmentDirectional.center, children: [
                   ///初心者マーク
-                  Container(
+                  SizedBox(
                       height: 100,
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -156,13 +153,13 @@ class _LoginPageState extends State<LoginPage> {
                           ])),
 
                   ///タイトル
-                  Text('App Title',
+                  const Text('App Title',
                       style: TextStyle(
                           color: Colors.black,
                           fontSize: 36,
                           fontWeight: FontWeight.bold))
                 ]),
-                Container(
+                SizedBox(
                     height: 400,
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -170,16 +167,14 @@ class _LoginPageState extends State<LoginPage> {
                           ///白線
                           Container(width: 20, color: Colors.white),
 
-                          Container(
-                              child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
+                          Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
                                 /// メールアドレス入力
-                                Container(
+                                SizedBox(
                                   width: 250,
                                   child: TextField(
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                         label: Text('E-mail address',
                                             style: TextStyle(
                                                 color: Colors.green))),
@@ -189,10 +184,10 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
 
                                 ///パスワード入力
-                                Container(
+                                SizedBox(
                                   width: 250,
                                   child: TextField(
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                         label: Text('Password',
                                             style: TextStyle(
                                                 color: Colors.green))),
@@ -202,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
 
                                 ///ログインボタン
-                                Container(
+                                SizedBox(
                                   width: 150,
                                   height: 50,
                                   child: ElevatedButton(
@@ -219,42 +214,42 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
 
                                 ///アカウント新規作成ボタン
-                                Container(
+                                SizedBox(
                                   width: 250,
                                   height: 50,
                                   child: ElevatedButton(
-                                    child: const Text("Create New Account",
-                                        style: TextStyle(
-                                            fontSize: 18, color: Colors.black)),
                                     onPressed: () async {
                                       Navigator.of(context)
                                           .pushNamed("/register");
                                     },
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.yellow),
+                                    child: const Text("Create New Account",
+                                        style: TextStyle(
+                                            fontSize: 18, color: Colors.black)),
                                   ),
                                 ),
 
                                 /// ゲストログイン
-                                Container(
+                                SizedBox(
                                   width: 250,
                                   height: 50,
                                   child: ElevatedButton(
-                                    child: const Text("Guest Login",
-                                        style: TextStyle(
-                                            fontSize: 18, color: Colors.black)),
                                     onPressed: () async {
                                       Navigator.of(context).pushNamed("/map");
                                     },
                                     style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.yellow),
+                                    child: const Text("Guest Login",
+                                        style: TextStyle(
+                                            fontSize: 18, color: Colors.black)),
                                   ),
                                 ),
 
                                 /// エラー文などの表示
                                 const SizedBox(height: 8),
                                 Text(infoText),
-                              ])),
+                              ]),
 
                           ///白線
                           Container(width: 20, color: Colors.white)
