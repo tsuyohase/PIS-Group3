@@ -225,7 +225,10 @@ class _GoogleMapWidget extends HookWidget {
             title: Text(predictions.value[index].description
                 .toString()), // 検索結果を表示。descriptionを指定すると場所名が表示されます。
             onTap: () async {
-// 検索した住所を押した時の処理を記載
+              // 検索した住所を押した時の処理を記載
+
+              markers.value.clear();
+
               _getTargetLatLng(
                   position, predictions.value[index].placeId, markers);
 
@@ -239,8 +242,7 @@ class _GoogleMapWidget extends HookWidget {
     );
   }
 
-  Future<void> _setCurrentLocation(ValueNotifier<LatLng> position,
-      ValueNotifier<Map<String, Marker>> markers) async {
+  Future<void> _setCurrentLocation(ValueNotifier<LatLng> position) async {
     final currentPosition = await _determinePosition();
 
     const decimalPoint = 3;
@@ -249,13 +251,6 @@ class _GoogleMapWidget extends HookWidget {
             (currentPosition.latitude).toStringAsFixed(decimalPoint) &&
         (position.value.longitude).toStringAsFixed(decimalPoint) !=
             (currentPosition.longitude).toStringAsFixed(decimalPoint)) {
-      // 現在地座標にMarkerを立てる
-      final marker = Marker(
-        markerId: MarkerId('current'),
-        position: LatLng(currentPosition.latitude, currentPosition.longitude),
-      );
-      markers.value.clear();
-      markers.value['current'] = marker;
       // 現在地座標のstateを更新する
       position.value = currentPosition;
     }
@@ -270,7 +265,27 @@ class _GoogleMapWidget extends HookWidget {
     );
   }
 
-  Future<dynamic> _getPhoto(String? placeId) async {
+  Future<void> _initParkings(
+      dynamic results_list, ValueNotifier<List<Parking>> parkings) async {
+    //検索時の現在位置の取得(処理に時間かかる)
+    final currentPosition = await Geolocator.getCurrentPosition();
+    List<Future<void>> futureList = [];
+    for (int i = 0; i < results_list.length; i++) {
+      var latitude = results_list[i]["geometry"]["location"]['lat'];
+      var longitude = results_list[i]["geometry"]["location"]['lng'];
+      //追加する駐車場クラスの定義
+      Parking parking = Parking(
+          latLng: LatLng(latitude, longitude), name: results_list[i]["name"]);
+      parkings.value.add(parking);
+      futureList
+          .add(_getDistance(parking, currentPosition, latitude, longitude));
+      var placeId = results_list[i]["place_id"];
+      futureList.add(_getPhoto(parking, placeId));
+    }
+    await Future.wait(futureList);
+  }
+
+  Future<void> _getPhoto(Parking parking, String? placeId) async {
 // ここでもAPIキーを使用する。
     String requestUrl =
         'https://maps.googleapis.com/maps/api/place/details/json?language=ja&place_id=${placeId}&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
@@ -281,11 +296,25 @@ class _GoogleMapWidget extends HookWidget {
       final res = jsonDecode(response.body);
       var photos = res['result']['photos'];
       if (photos != null) {
-        return photos[0]['photo_reference'];
-      } else {
-        return null;
+        final photo = photos[0]['photo_reference'];
+        final photo_url =
+            "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=$photo&key=${dotenv.get("GOOGLE_MAP_API_KEY")}";
+        parking.photoURL = photo_url;
       }
     }
+  }
+
+  Future<void> _getDistance(Parking parking, Position currentPosition,
+      dynamic latitude, dynamic longitude) async {
+    //現在地から駐車場までの距離を計算
+    double distanceInMeters = Geolocator.distanceBetween(
+        currentPosition.latitude,
+        currentPosition.longitude,
+        latitude,
+        longitude);
+    //距離をkmで表示(小数点第2位まで使用)
+    parking.distance =
+        double.parse((distanceInMeters / 1000).toStringAsFixed(2));
   }
 
   // 現在値を取得して駐車場のリストを追加する
@@ -295,8 +324,7 @@ class _GoogleMapWidget extends HookWidget {
       ValueNotifier<List<Parking>> parkings) async {
     final keyword = "parking";
     final radius = "1500";
-    //検索時の現在位置の取得(処理に時間かかる)
-    final currentPosition = await Geolocator.getCurrentPosition();
+
 // ここでもAPIキーを使用する。
     String requestUrl =
         'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${position.latitude}%2C${position.longitude}&radius=${radius}&language=ja&query=${keyword}&type=parking&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
@@ -308,33 +336,8 @@ class _GoogleMapWidget extends HookWidget {
       parkings.value = [];
       final res = jsonDecode(response.body);
       var results_list = res["results"];
-      for (int i = 0; i < results_list.length; i++) {
-        var latitude = results_list[i]["geometry"]["location"]['lat'];
-        var longitude = results_list[i]["geometry"]["location"]['lng'];
-        var placeId = results_list[i]["place_id"];
-        var photo = await _getPhoto(placeId);
-        final photo_url =
-            "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=$photo&key=${dotenv.get("GOOGLE_MAP_API_KEY")}";
 
-        //現在地から駐車場までの距離を計算
-        double distanceInMeters = Geolocator.distanceBetween(
-            currentPosition.latitude,
-            currentPosition.longitude,
-            latitude,
-            longitude);
-        //追加する駐車場クラスの定義
-        Parking parking = Parking(
-            latLng: LatLng(latitude, longitude), name: results_list[i]["name"]);
-        //距離をkmで表示(小数点第2位まで使用)
-        parking.distance =
-            double.parse((distanceInMeters / 1000).toStringAsFixed(2));
-
-        if (photo != null) {
-          parking.photoURL = photo_url;
-        }
-        //駐車場のリストに追加
-        parkings.value.add(parking);
-      }
+      await _initParkings(results_list, parkings);
     }
   }
 
@@ -677,7 +680,7 @@ class _GoogleMapWidget extends HookWidget {
 
     // 一度だけ実行(うまく動いていない)
     useEffect(() {
-      _setCurrentLocation(position, markers);
+      _setCurrentLocation(position);
       return;
     }, const []);
 
