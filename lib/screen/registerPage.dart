@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-//import '../constants.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -45,16 +44,16 @@ class _RightDiagonalClipper extends CustomClipper<Path> {
 }
 
 class _RegisterPage extends State<RegisterPage> {
-  //e-mailアドレスとパスワードを入力するcontroller
+  //e-mailアドレスとパスワードを入力するcontroller.
   final _idController = TextEditingController();
   final _passController = TextEditingController();
-  //
+  //駐車スキルが初心者か否か.
   bool skill = false;
   String infoText = "アカウント作成後、自動でログインページに移動します";
 
   void _createAccount(String id, String pass, bool skill) async {
     try {
-      /// credential にはアカウント情報が記録される
+      // credential にはアカウント情報が記録される.
       final credential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: id,
@@ -62,9 +61,9 @@ class _RegisterPage extends State<RegisterPage> {
       );
       final User user = credential.user!;
       await FirebaseFirestore.instance
-          .collection('users') // コレクションID
-          .doc(user.uid) // ドキュメントID
-          .set({'email': id, 'password': pass, 'skillIsExpert': skill}); // データ
+          .collection('users') // コレクションID.
+          .doc(user.uid) // ドキュメントID.
+          .set({'email': id, 'password': pass, 'skillIsExpert': skill}); // データ.
       // アカウント登録した後はログインページへ.
       // 冗長であるため、本来はアカウント登録した後はそのままログインしてマップページへ行くべきかもしれない.
       // ignore: use_build_context_synchronously
