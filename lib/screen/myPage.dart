@@ -26,6 +26,40 @@ class MyPage extends StatefulWidget {
   State<MyPage> createState() => _MyPage();
 }
 
+///初心者マークの描画
+class _LeftDiagonalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..lineTo(size.width * 1.0, size.height * 0.3)
+      ..lineTo(size.width * 1.0, size.height * 1.0)
+      ..lineTo(0, size.height * 0.7)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(CustomClipper oldclipper) {
+    return true;
+  }
+}
+
+class _RightDiagonalClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..lineTo(0, size.height * 0.3)
+      ..lineTo(size.width * 1.0, 0)
+      ..lineTo(size.width * 1.0, size.height * 0.7)
+      ..lineTo(0, size.height * 1.0)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(CustomClipper oldclipper) {
+    return true;
+  }
+}
+
 class _MyPage extends State<MyPage> {
   bool skill = false;
   String userInfoText = "";
@@ -36,21 +70,84 @@ class _MyPage extends State<MyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Color.fromARGB(255, 215, 213, 213),
         appBar: AppBar(
-          title: const Text('マイページ'),
+          backgroundColor: Colors.green,
+          title: const Text('My Page', style: TextStyle(color: Colors.white)),
         ),
-        body: Column(children: [
+        body: SingleChildScrollView(
+          child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+          Stack(alignment: AlignmentDirectional.center, children: [
+          ///初心者マーク
+          Container(
+            height: 100,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ClipPath(
+                  clipper: _LeftDiagonalClipper(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                    ///border: Border.all(color: Colors.black.withOpacity(0.5), width: 4),
+                    ///borderRadius: BorderRadius.circular(8),
+                    color: Colors.yellow.withOpacity(0.5)),
+                    width: 30,
+                  )),
+                ClipPath(
+                  clipper: _RightDiagonalClipper(),
+                  child: Container(
+                   decoration: BoxDecoration(
+                                      ///              border: Border.all(color: Colors.black.withOpacity(0.5), width: 4),
+                                      ///              borderRadius: BorderRadius.circular(8),
+                    color: Colors.green.withOpacity(0.5)),
+                    width: 30,
+                  ))
+              ])),
+              ///タイトル
+              Text('App Title',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold))
+                ]),
           FutureBuilder(
             future: getUserInfo(),
             builder: (BuildContext context,
                 AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
                     snapshot) {
               if (snapshot.hasData) {
-                userInfoText = 'ログイン中のアカウント：' + snapshot.data!['email'];
+                userInfoText = 'Your Current Account:\n${snapshot.data!['email']}';
               } else {
-                userInfoText = "ログインしていません";
+                userInfoText = "Not Logged In";
               }
-              return Text(userInfoText);
+              return Center(
+                child: Container(
+                margin: EdgeInsets.all(8),
+                width: 300,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.yellow,
+                  border: Border.all(color: Colors.green, width: 3.0),
+                  borderRadius: BorderRadius.circular(8)
+                ),
+                child: RichText(
+                  text: TextSpan(
+                    style: TextStyle(fontSize: 20),
+                    children: [
+                      TextSpan(
+                        text: 'Your Current Account\n',
+                        style: TextStyle(fontSize: 12, color: Colors.black)
+                        ),
+                      TextSpan(
+                        text: snapshot.hasData ? snapshot.data!['email'] : 'Not Logged In',
+                        style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold))
+                    ]),
+                  textAlign: TextAlign.center,
+                  )
+                ),
+              );
             },
           ),
           FutureBuilder(
@@ -60,29 +157,59 @@ class _MyPage extends State<MyPage> {
                     snapshot) {
               if (snapshot.hasData) {
                 if (snapshot.data!['skillIsExpert']) {
-                  userSkillText = '現在の駐車スキル：初心者ではない';
+                  userSkillText = 'Driver Skill: Expert';
                 } else {
-                  userSkillText = '現在の駐車スキル：初心者';
+                  userSkillText = 'Driver Skill: Beginner';
                 }
               } else {
-                userSkillText = "ログインしていません";
+                userSkillText = "Not Logged In";
               }
-              return Text(userSkillText);
+              return Center(
+                child: Container(
+                  margin: EdgeInsets.all(8),
+                  width: 250,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.yellow,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green, width: 3.0),
+                  ),
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 12, color: Colors.black),
+                      children: [
+                        TextSpan(text: 'Your Skill\n'),
+                        TextSpan(
+                          text: snapshot.hasData
+                          ? (snapshot.data!['skillIsExpert'] ? 'Expert' : 'Beginner')
+                          : 'Not Logged In',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ]
+                    ),
+                  ),
+                ),
+              );
             },
           ),
-          Container(
-            margin: const EdgeInsets.only(top: 20),
-            width: 200,
-            color: Colors.white,
+          SizedBox(height: 8),
+          Center(
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            width: 100,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              ),
             child: DropdownButton(
-              hint: Text('駐車スキル変更'),
+              underline: Container(),
               items: const [
                 DropdownMenuItem(
-                  child: Text('初心者'),
+                  child: Text('Beginner', style: TextStyle(fontWeight: FontWeight.bold)),
                   value: false,
                 ),
                 DropdownMenuItem(
-                  child: Text('初心者ではない'),
+                  child: Text('Expert', style: TextStyle(fontWeight: FontWeight.bold)),
                   value: true,
                 ),
               ],
@@ -94,21 +221,24 @@ class _MyPage extends State<MyPage> {
               value: skill,
             ),
           ),
-          ElevatedButton(
-            child: Text('駐車スキル 編集'),
+          ),
+          Center(
+          child: Container(
+          width: 150,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+            child: Text('Modify Your Skill', style: TextStyle(color: Colors.black)),
             onPressed: () async {
               await FirebaseFirestore.instance
                   .collection('users')
                   .doc(userID)
-                  .update({'skillIsExpert': skill}); // データ
-              setState(() {
-                infoText = "編集を完了しました";
-              });
+                  .update({'skillIsExpert': skill}); // データ);
             },
           ),
-          const SizedBox(height: 8),
-          Text(infoText),
-          const Text("駐車場へのフィードバック"),
+          ),
+          ),
+          const SizedBox(height: 16),
+          Text("Your Feedback", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           FutureBuilder(
             future: getUserFeedbackInfo(),
             builder: (BuildContext context,
@@ -120,14 +250,14 @@ class _MyPage extends State<MyPage> {
                 for (int i = 0; i < list.length; i++) {
                   var element = list[i];
                   userFeedbackText +=
-                      "${i + 1} : ${element['time'].toDate()}\n${element.id}\n難易度評価 : ${element['difficulty']}\n";
+                      "${i + 1} : ${element['time'].toDate()}\n${element.id}\nDifficulty : ${element['difficulty']}\n";
                 }
               } else {
-                userFeedbackText = "なし";
+                userFeedbackText = "None";
               }
               return Text(userFeedbackText);
             },
           ),
-        ]));
+        ])));
   }
 }
