@@ -12,6 +12,43 @@ import 'package:flutter/material.dart';
 ///評価バー実装のための準備
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
+class StaticRatingBar extends StatelessWidget {
+  final double rating;
+  final double size;
+  final Color color;
+  final bool allowHalfRating;
+
+  StaticRatingBar({
+    required this.rating,
+    this.size = 24.0,
+    this.color = Colors.yellow,
+    this.allowHalfRating = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        if (allowHalfRating) {
+          if (rating >= index && rating < index + 1) {
+            return Icon(
+              Icons.star_half,
+              size: size,
+              color: color,
+            );
+          }
+        }
+        return Icon(
+          index < rating.floor() ? Icons.star : Icons.star_border,
+          size: size,
+          color: color,
+        );
+      }),
+    );
+  }
+}
+
 class RankingPage extends StatelessWidget {
   final ValueNotifier<List<Parking>> parkings;
   const RankingPage({Key? key, required this.parkings}) : super(key: key);
@@ -44,18 +81,19 @@ class RankingPage extends StatelessWidget {
                           Text(
                               '${parking.latLng.latitude}, ${parking.latLng.longitude}',
                               style: TextStyle(color: Colors.black)),
+                          
                           ///Text('Congestion: ${parking.congestion}',
                           ///    style: TextStyle(color: Colors.black)),
                           ///Text('Near Roads Width: ${parking.nearWidth}'),
-                          RatingBar.builder(
-                            direction: Axis.horizontal,
-                            allowHalfRating: true,
-                            itemCount: 5,
-                            itemBuilder: (context, index) => const Icon(Icons.star, color: Colors.white),
-                            onRatingUpdate: (rating) {
-                              print('${parking.difficulty}');
-                            },
+                          StaticRatingBar(
+                           rating: parking.difficulty * 5, // 0から1までの数値を5倍した評価値を指定
+                           size: 20.0, // 星のサイズを指定
+                           color: Colors.white, // 星の色を指定
+                           allowHalfRating: true, // 半分の星を許可する
                           ),
+                          Text(
+                              '${parking.distance}km',
+                              style: TextStyle(color: Colors.black))
                         ]),
                     onTap: () {
                       Navigator.of(context)

@@ -273,6 +273,8 @@ class _GoogleMapWidget extends HookWidget {
       ValueNotifier<List<Parking>> parkings) async {
     final keyword = "parking";
     final radius = "1500";
+    //検索時の現在位置の取得(処理に時間かかる)
+    final currentPosition = await Geolocator.getCurrentPosition();
 // ここでもAPIキーを使用する。
     String requestUrl =
         'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${position.latitude}%2C${position.longitude}&radius=${radius}&language=ja&query=${keyword}&type=parking&key=${dotenv.get("GOOGLE_MAP_API_KEY")}';
@@ -287,9 +289,17 @@ class _GoogleMapWidget extends HookWidget {
       for (int i = 0; i < results_list.length; i++) {
         var latitude = results_list[i]["geometry"]["location"]['lat'];
         var longitude = results_list[i]["geometry"]["location"]['lng'];
-        parkings.value.add(Parking(
+        //現在地から駐車場までの距離を計算
+        double distanceInMeters =Geolocator.distanceBetween(currentPosition.latitude,currentPosition.longitude,latitude, longitude);
+        //追加する駐車場クラスの定義
+        Parking parking = Parking(
             latLng: LatLng(latitude, longitude),
-            name: results_list[i]["name"]));
+            name: results_list[i]["name"]);
+        //距離をkmで表示(小数点第2位まで使用)
+            parking.distance = double.parse((distanceInMeters / 1000).toStringAsFixed(2));
+        //駐車場のリストに追加
+        parkings.value.add(parking);
+        
       }
     }
   }
@@ -697,7 +707,6 @@ class _GoogleMapWidget extends HookWidget {
                     searching.value = true;
 
                     LatLng cp = await getCenter();
-
                     position.value = cp;
 
                     await _getParking(cp, markers, parkings);
