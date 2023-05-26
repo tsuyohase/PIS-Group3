@@ -13,6 +13,7 @@ import "parking.dart";
 import 'loginPage.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'dart:math' as Math;
+import '../model/ratingbar.dart';
 
 class NaviPage extends StatefulWidget {
   final Parking parking;
@@ -22,45 +23,6 @@ class NaviPage extends StatefulWidget {
   State<NaviPage> createState() => _NaviPageState();
 }
 
-//五段階星評価を表示するクラス
-class StaticRatingBar extends StatelessWidget {
-  final double rating;
-  final double size;
-  final Color color;
-  final bool allowHalfRating;
-
-  StaticRatingBar({
-    required this.rating,
-    this.size = 24.0,
-    this.color = Colors.yellow,
-    this.allowHalfRating = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (index) {
-        if (allowHalfRating) {
-          if (rating >= index && rating < index + 1) {
-            return Icon(
-              Icons.star_half,
-              size: size,
-              color: color,
-            );
-          }
-        }
-        return Icon(
-          index < rating.floor() ? Icons.star : Icons.star_border,
-          size: size,
-          color: color,
-        );
-      }),
-    );
-  }
-}
-
-//StaticRatingBarここまで
 class _NaviPageState extends State<NaviPage> {
   GooglePlace googlePlace = GooglePlace(dotenv.get("GOOGLE_MAP_API_KEY"));
   // 初期表示位置を渋谷駅に設定
@@ -276,33 +238,29 @@ class _NaviPageState extends State<NaviPage> {
                             // SimpleDialogOption(
                             //   child: Text("longitude : " + parking.latLng.longitude.toString()),
                             // ),
+                            StaticRatingBar(
+                              rating: widget.parking.difficulty *
+                                  5, // 0から1までの数値を5倍した評価値を指定
+                              size: 24.0, // 星のサイズを指定
+                              color: Colors.yellow.shade700, // 星の色を指定
+                              allowHalfRating: true, // 半分の星を許可する
+                            ),
+
                             //駐車場の画像をスライドで表示.
                             CarouselSlider(
                                 options: CarouselOptions(),
                                 items: widget.parking.photoURLList.map((i) {
                                   return Image.network(i);
                                 }).toList()),
-                            StaticRatingBar(
-                              rating: widget.parking.difficulty *
-                                  5, // 0から1までの数値を5倍した評価値を指定
-                              size: 20.0, // 星のサイズを指定
-                              color: Colors.yellow, // 星の色を指定
-                              allowHalfRating: true, // 半分の星を許可する
-                            ),
-                            //SimpleDialogOption(
-                            //  child: Text("駐車難易度 : " + widget.parking.difficulty.toString()),
-                            //),
+
                             SimpleDialogOption(
                               child: Text("ランキング: " +
                                   (widget.parking.rank + 1).toString()),
                             ),
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                  backgroundColor: Colors.blue),
-                              child: Text("OK",
-                                  style: TextStyle(color: Colors.white)),
-                              onPressed: () => Navigator.pop(context),
-                            ),
+
+                            //SimpleDialogOption(
+                            //  child: Text("駐車難易度 : " + widget.parking.difficulty.toString()),
+                            //),
                           ],
                         ),
                       ),

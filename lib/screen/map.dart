@@ -15,6 +15,7 @@ import 'package:crypto/crypto.dart';
 
 import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
 import '../model/ml.dart';
+import '../model/ratingbar.dart';
 
 import 'package:flutter/services.dart';
 import 'dart:typed_data';
@@ -591,27 +592,43 @@ class _GoogleMapWidget extends HookWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           alignment: Alignment.topCenter,
-          title: Text(parking.name),
           content: SizedBox(
             width: double.maxFinite,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                alignment: Alignment.center,
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  parking.name,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.0,
+                  ),
+                ),
+              ),
               // SimpleDialogOption(
               //   child: Text("latitude : " + parking.latLng.latitude.toString()),
               // ),
               // SimpleDialogOption(
               //   child: Text("longitude : " + parking.latLng.longitude.toString()),
               // ),
+              StaticRatingBar(
+                rating: parking.difficulty * 5, // 0から1までの数値を5倍した評価値を指定
+                size: 24.0, // 星のサイズを指定
+                color: Colors.yellow.shade700, // 星の色を指定
+                allowHalfRating: true, // 半分の星を許可する
+              ),
+
               //駐車場の画像をスライドで表示.
               CarouselSlider(
                   options: CarouselOptions(),
                   items: parking.photoURLList.map((i) {
                     return Image.network(i);
                   }).toList()),
+
               SimpleDialogOption(
-                child: Text("駐車難易度 : " + parking.difficulty.toString()),
-              ),
-              SimpleDialogOption(
-                child: Text("ランキング: " + parking.rank.toString()),
+                child: Text("ランキング: " + (parking.rank + 1).toString()),
               ),
 
               ElevatedButton(
