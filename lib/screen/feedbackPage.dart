@@ -11,9 +11,12 @@ String infoText = "";
 bool ok = false;
 double difficulty = 0.0;
 
-Future<DocumentSnapshot<Map<String, dynamic>>> getUserInfo() async {
+Future<DocumentSnapshot<Map<String, dynamic>>> getUserInfo() {
+  if (userID == "") {
+    userID = "hogehoge";
+  }
   final userInfo =
-      await FirebaseFirestore.instance.collection('users').doc(userID).get();
+      FirebaseFirestore.instance.collection('users').doc(userID).get();
   return userInfo;
 }
 
@@ -38,9 +41,11 @@ class _FeedbackPage extends State<FeedbackPage> {
             builder: (BuildContext context,
                 AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
                     snapshot) {
-              if (snapshot.hasData) {
-                ok = true;
-                userInfoText = 'ログイン中のアカウント：' + snapshot.data!['email'];
+              if (snapshot.data != null) {
+                if (snapshot.data!.id != "hogehoge") {
+                  ok = true;
+                  userInfoText = 'ログイン中のアカウント：' + snapshot.data!['email'];
+                }
               } else {
                 ok = false;
                 userInfoText = "ログインしていません";

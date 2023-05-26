@@ -290,16 +290,19 @@ class _GoogleMapWidget extends HookWidget {
         var latitude = results_list[i]["geometry"]["location"]['lat'];
         var longitude = results_list[i]["geometry"]["location"]['lng'];
         //現在地から駐車場までの距離を計算
-        double distanceInMeters =Geolocator.distanceBetween(currentPosition.latitude,currentPosition.longitude,latitude, longitude);
+        double distanceInMeters = Geolocator.distanceBetween(
+            currentPosition.latitude,
+            currentPosition.longitude,
+            latitude,
+            longitude);
         //追加する駐車場クラスの定義
         Parking parking = Parking(
-            latLng: LatLng(latitude, longitude),
-            name: results_list[i]["name"]);
+            latLng: LatLng(latitude, longitude), name: results_list[i]["name"]);
         //距離をkmで表示(小数点第2位まで使用)
-            parking.distance = double.parse((distanceInMeters / 1000).toStringAsFixed(2));
+        parking.distance =
+            double.parse((distanceInMeters / 1000).toStringAsFixed(2));
         //駐車場のリストに追加
         parkings.value.add(parking);
-        
       }
     }
   }
@@ -659,7 +662,7 @@ class _GoogleMapWidget extends HookWidget {
             : _searchTextField(hasPositon, predictions),
         actions: !isSearch.value
             ? [
-                userID == ''
+                userID == '' || userID == "hogehoge"
                     ? IconButton(
                         onPressed: () {
                           Navigator.of(context).pushNamed("/login");
