@@ -766,73 +766,79 @@ class _GoogleMapWidget extends HookWidget {
         children: [
           _createMap(markers),
           Container(
+            padding: const EdgeInsets.all(50),
             alignment: Alignment.bottomCenter,
             child: SizedBox(
               height: 50,
-              child: ElevatedButton(
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
-                  child: Column(children: [
-                    Text("Let's Search!",
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold)),
-                    Text("at this point",
-                        style: TextStyle(color: Colors.black)),
+              child: SizedBox(
+                width: 200,
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                    child: Column(children: [
+                      Text("Let's Search!",
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold)),
+                      Text("at this point",
+                          style: TextStyle(color: Colors.black)),
 
-                    ///Text("経度 : " + position.value.longitude.toString(), style: TextStyle(color: Colors.black)),
-                  ]),
-                  onPressed: () async {
-                    isSearch.value = false;
-                    // positoin.value.latitudeで緯度取得
-                    // postion.value.longitudeで軽度取得できる
-                    searching.value = true;
+                      ///Text("経度 : " + position.value.longitude.toString(), style: TextStyle(color: Colors.black)),
+                    ]),
+                    onPressed: () async {
+                      isSearch.value = false;
+                      // positoin.value.latitudeで緯度取得
+                      // postion.value.longitudeで軽度取得できる
+                      searching.value = true;
 
-                    LatLng cp = await getCenter();
-                    position.value = cp;
+                      LatLng cp = await getCenter();
+                      position.value = cp;
 
-                    await _getParking(cp, markers, parkings);
-                    // await _getCongestion(parkings);
-                    await _getParkingsInfo(parkings);
-                    await _getDifficulty(parkings);
-                    _sortParkings(parkings, skill);
+                      await _getParking(cp, markers, parkings);
+                      // await _getCongestion(parkings);
+                      await _getParkingsInfo(parkings);
+                      await _getDifficulty(parkings);
+                      _sortParkings(parkings, skill);
 
-                    // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
-                    // await _getNearWidth(parkings);
+                      // 緯度経度をもとにnavitimeのapiを叩く処理をここに書く
+                      // await _getNearWidth(parkings);
 
-                    searching.value = false;
+                      searching.value = false;
 
-                    //駐車場取得メッセージの設定
-                    var parkingMessage = "";
+                      //駐車場取得メッセージの設定
+                      var parkingMessage = "";
 
-                    if (parkings.value.length > 0) {
-                      parkingMessage = "Success！";
-                      _setParkingLocation(context, markers, parkings, skill);
-                    } else {
-                      parkingMessage = "駐車場はありません";
-                    }
-                    ;
-                    //ダイアログの表示
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          backgroundColor: Color.fromARGB(255, 215, 213, 213),
-                          title: Text(parkingMessage),
-                          actions: [
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                  backgroundColor: Colors.yellow),
-                              child: Text("OK",
-                                  style: TextStyle(color: Colors.black)),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }),
+                      if (parkings.value.length > 0) {
+                        parkingMessage = "Success！";
+                        _setParkingLocation(context, markers, parkings, skill);
+                      } else {
+                        parkingMessage = "駐車場はありません";
+                      }
+                      ;
+                      //ダイアログの表示
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            backgroundColor: Color.fromARGB(255, 215, 213, 213),
+                            title: Text(parkingMessage),
+                            actions: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                    backgroundColor: Colors.yellow),
+                                child: Text("OK",
+                                    style: TextStyle(color: Colors.black)),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }),
+              ),
             ),
           ),
           if (hasPositon.value)
