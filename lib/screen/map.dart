@@ -458,6 +458,7 @@ class _GoogleMapWidget extends HookWidget {
     }
     await Future.wait(futureList);
 
+    parkings.value.sort((a, b) => a.distance.compareTo(b.distance));
     for (int i = 0; i < parkings.value.length; i++) {
       parkings.value[i].defaultRank = i;
     }
