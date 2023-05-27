@@ -36,13 +36,11 @@ class _LeftDiagonalClipper extends CustomClipper<Path> {
       ..lineTo(0, size.height * 0.7)
       ..close();
   }
-
   @override
   bool shouldReclip(CustomClipper oldclipper) {
     return true;
   }
 }
-
 class _RightDiagonalClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -53,7 +51,6 @@ class _RightDiagonalClipper extends CustomClipper<Path> {
       ..lineTo(0, size.height * 1.0)
       ..close();
   }
-
   @override
   bool shouldReclip(CustomClipper oldclipper) {
     return true;
@@ -75,8 +72,7 @@ class _MyPage extends State<MyPage> {
           backgroundColor: Colors.green,
           title: const Text('My Page', style: TextStyle(color: Colors.white)),
         ),
-        body: SingleChildScrollView(
-            child: Column(
+        body: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
               Stack(alignment: AlignmentDirectional.center, children: [
@@ -90,7 +86,6 @@ class _MyPage extends State<MyPage> {
                               clipper: _LeftDiagonalClipper(),
                               child: Container(
                                 decoration: BoxDecoration(
-
                                     ///border: Border.all(color: Colors.black.withOpacity(0.5), width: 4),
                                     ///borderRadius: BorderRadius.circular(8),
                                     color: Colors.yellow.withOpacity(0.5)),
@@ -100,14 +95,12 @@ class _MyPage extends State<MyPage> {
                               clipper: _RightDiagonalClipper(),
                               child: Container(
                                 decoration: BoxDecoration(
-
                                     ///              border: Border.all(color: Colors.black.withOpacity(0.5), width: 4),
                                     ///              borderRadius: BorderRadius.circular(8),
                                     color: Colors.green.withOpacity(0.5)),
                                 width: 30,
                               ))
                         ])),
-
                 ///タイトル
                 const Text('App Title',
                     style: TextStyle(
@@ -115,6 +108,9 @@ class _MyPage extends State<MyPage> {
                         fontSize: 36,
                         fontWeight: FontWeight.bold))
               ]),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              Container(width: 20, height:400, color: Colors.white),
+              Column(mainAxisAlignment: MainAxisAlignment.center, children:[
               FutureBuilder(
                 future: getUserInfo(),
                 builder: (BuildContext context,
@@ -131,7 +127,7 @@ class _MyPage extends State<MyPage> {
                   return Center(
                     child: Container(
                         margin: const EdgeInsets.all(8),
-                        width: 300,
+                        width: 250,
                         height: 50,
                         decoration: BoxDecoration(
                             color: Colors.yellow,
@@ -177,7 +173,7 @@ class _MyPage extends State<MyPage> {
                   return Center(
                     child: Container(
                       margin: const EdgeInsets.all(8),
-                      width: 250,
+                      width: 200,
                       height: 50,
                       decoration: BoxDecoration(
                         color: Colors.yellow,
@@ -207,8 +203,8 @@ class _MyPage extends State<MyPage> {
                 },
               ),
               const SizedBox(height: 8),
-              Center(
-                child: Container(
+              Row(mainAxisAlignment: MainAxisAlignment.center,children: [
+              Container(
                   margin: const EdgeInsets.all(8),
                   width: 100,
                   decoration: BoxDecoration(
@@ -237,9 +233,7 @@ class _MyPage extends State<MyPage> {
                     value: skill,
                   ),
                 ),
-              ),
-              Center(
-                child: SizedBox(
+                SizedBox(
                   width: 150,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -258,15 +252,17 @@ class _MyPage extends State<MyPage> {
                     },
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+              ]),
               Text(infoText),
+              const SizedBox(height: 16),
               const Text("Your Feedback",
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
               //フィードバック一覧を表示.
               //一部分だけスクロールできる.
               Scrollbar(
-                  child: SizedBox(
+                child: SizedBox(
+                width: 250,
                 height: 200,
                 child: ListView(
                   children: <Widget>[
@@ -283,7 +279,7 @@ class _MyPage extends State<MyPage> {
                             var element = list[i];
                             //タイムスタンプと駐車場名と駐車難易度評価を表示.
                             userFeedbackText +=
-                                "${i + 1} : ${element['time'].toDate()}\n${element.id}\nDifficulty : ${element['difficulty']}\n";
+                                "${i + 1} : ${element['time'].toDate()}\n${element.id}\nDifficulty : ${element['difficulty']}\n\n";
                           }
                         } else {
                           userFeedbackText = "None";
@@ -293,7 +289,12 @@ class _MyPage extends State<MyPage> {
                     ),
                   ],
                 ),
-              )),
-            ])));
+              )
+              ),
+              ]),
+            Container(width: 20, height:400, color: Colors.white)
+            ]),
+            ]),
+            );
   }
 }
