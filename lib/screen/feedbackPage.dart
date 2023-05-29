@@ -54,7 +54,7 @@ class _FeedbackPage extends State<FeedbackPage> {
                 if (snapshot.data!.id != "hogehoge") {
                   isLogin = true;
                   // ignore: prefer_interpolation_to_compose_strings
-                  userInfoText = 'Your Account' + snapshot.data!['email'];
+                  userInfoText = snapshot.data!['email'];
                 }
                 //ログインしていない場合、その旨を表示.
               } else {
