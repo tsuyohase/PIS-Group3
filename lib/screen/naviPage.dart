@@ -194,8 +194,12 @@ class _NaviPageState extends State<NaviPage> {
           _createMap(),
           Container(
             alignment: Alignment.bottomCenter,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: ElevatedButton(
-                child: Text("案内終了"),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+                child: Text("Finish", style: TextStyle(color: Colors.black)),
                 onPressed: () async {
                   Navigator.of(context)
                       .pushNamed("/feedbackpage", arguments: widget.parking);
@@ -254,7 +258,7 @@ class _NaviPageState extends State<NaviPage> {
                                 }).toList()),
 
                             SimpleDialogOption(
-                              child: Text("ランキング: " +
+                              child: Text("Ranking:" +
                                   (widget.parking.rank + 1).toString()),
                             ),
 
