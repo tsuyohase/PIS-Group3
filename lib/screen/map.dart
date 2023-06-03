@@ -380,77 +380,17 @@ class _GoogleMapWidget extends HookWidget {
     }
   }
 
-  //parkingsを受け取り
-  Future<void> _getNearWidth(Parking parking) async {
-    //変数定義
-    const String REQUEST_CODE = "i3uWChjt4PVAiv7VAyAS";
-    const CID = "p2300410";
-    const NAVITIME_HOST = "trial.api-service.navitime.biz";
-    const QUERY = "v1/shape_car";
-    //環境変数の読み込み
-    await dotenv.load(fileName: '.env');
-    final signature_key = utf8.encode(dotenv.get('NAVITIME_API_KEY'));
-    //署名の発行
-    String signature = Hmac(sha256, signature_key)
-        .convert(utf8.encode(REQUEST_CODE))
-        .toString();
-    //  final Uri uri = Uri.https("maps.googleapis.com", "/maps/api/directions/json", params);
-    //final response = await http.get(uri);
-    final String origin =
-        "${parking.latLng.latitude},${parking.latLng.longitude}";
-    //駐車場の位置から少し離れた場所を目的地に設定
-    final String destination =
-        "${parking.latLng.latitude + 0.001},${parking.latLng.longitude + 0.001}";
-    final dio = Dio();
-    //String url = "https://$NAVITIME_HOST/$CID/$QUERY";
-    final url =
-        'https://$NAVITIME_HOST/$CID/$QUERY?start=$origin&goal=$destination&request_code=$REQUEST_CODE&signature=$signature';
-
-    //final response = await http.get(uri);
-    /*
-        Map<String, String> params = {
-          "start": origin,
-          "goal": destination,
-          "request_code": dotenv.get("NAVITIME_API_KEY"),
-          "signature": signature
-        };
-        final Uri uri = Uri.https(NAVITIME_HOST,"/$CID/$QUERY",params);*/
-    try {
-      final response = await dio.get(url);
-      //final response = await http.get(Uri.parse(url), headers: params);
-      if (response.statusCode == 200) {
-        final features = response.data["features"] as List<dynamic>;
-        //List features = jsonDecode(response.data)["features"];
-        if (features.isNotEmpty) {
-          List nearWidthList = [];
-          String nearWidth = "";
-          for (var feature in features) {
-            if (feature["properties"].containsKey("road_width_grade")) {
-              nearWidth = (feature["properties"]["road_width_grade"]);
-              break;
-            }
-          }
-          int width = 0;
-          if (nearWidth == 'broad') {
-            width = 2;
-          } else if (nearWidth == 'narrow') {
-            width = 1;
-          }
-          parking.nearWidth = width;
-        }
-      } else {
-        throw Exception("Failed to load data from server.");
-      }
-    } catch (error) {
-      throw Exception(error.toString());
-    }
-  }
+  //parkingsを受け取り最寄りの道幅を返す
+  //NAVITIME APIが使える場合はメソッドとして実装
+  //Future<void> _getNearWidth(Parking parking) async {
+    
+  //}
 
   Future<void> _getParkingsInfo(ValueNotifier<List<Parking>> parkings) async {
     List<Future<void>> futureList = [];
     for (Parking parking in parkings.value) {
       futureList.add(_getCongestion(parking));
-      futureList.add(_getNearWidth(parking));
+      //futureList.add(_getNearWidth(parking));
     }
     await Future.wait(futureList);
 
