@@ -1,6 +1,7 @@
 # parking_app
 
-A new Flutter project.
+Please look at the URL to check the summary of this app.
+https://docs.google.com/presentation/d/1HbmOJJNI_tvmECsZjvVnbJpdBzqhL_XG7hh8lXxekWc/edit#slide=id.g24939a660af_0_121
 
 ## Getting Started
 
